@@ -1,0 +1,52 @@
+{
+    "name": "vscode-table-formatter",
+    "displayName": "VSCodeTableFormatter",
+    "description": "Format or unformat table syntax of markdown, textile, csv and plane",
+    "version": "0.0.1",
+    "publisher": "shuworks",
+    "engines": {
+        "vscode": "^1.5.0"
+    },
+    "categories": [
+        "Formatters"
+    ],
+    "activationEvents": [
+        "onCommand:extension.format",
+        "onCommand:extension.unformat",
+        "onCommand:extension.insertBreak"
+    ],
+    "main": "./out/src/extension",
+    "contributes": {
+        "commands": [
+            {
+                "command": "extension.format",
+                "title": "format"
+            },
+            {
+                "command": "extension.unformat",
+                "title": "unformat"
+            },
+            {
+                "command": "extension.insertBreak",
+                "title": "insertBreak"
+            }
+        ]
+    },
+    "scripts": {
+        "vscode:prepublish": "tsc -p ./",
+        "compile": "tsc -watch -p ./",
+        "postinstall": "node ./node_modules/vscode/bin/install",
+        "test": "node ./node_modules/vscode/bin/test"
+    },
+    "dependencies": {
+        "string-width": "2.*",
+        "utils-pad-string": "*"
+    },
+    "devDependencies": {
+        "typescript": "^2.0.3",
+        "vscode": "^1.0.0",
+        "mocha": "^2.3.3",
+        "@types/node": "^6.0.40",
+        "@types/mocha": "^2.2.32"
+    }
+}
