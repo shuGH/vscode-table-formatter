@@ -1,37 +1,49 @@
 {
     "name": "vscode-table-formatter",
-    "displayName": "VSCodeTableFormatter",
-    "description": "Format or unformat table syntax of markdown, textile, csv and plane",
-    "version": "0.0.1",
+    "displayName": "Table Formatter",
+    "description": "Format table syntax of markdown and textile.",
+    "version": "1.0.0",
     "publisher": "shuworks",
+    "author": "Shuzo Iwasaki <shu.works.7@gmail.com>",
     "engines": {
         "vscode": "^1.5.0"
     },
+    "license": "MIT",
     "categories": [
         "Formatters"
     ],
-    "activationEvents": [
-        "onCommand:extension.format",
-        "onCommand:extension.unformat",
-        "onCommand:extension.insertBreak"
+    "keywords": [
+        "markdown", "textile", "table"
     ],
+    "galleryBanner": {
+        "color": "#946243",
+        "theme": "dark"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/shuGH/vscode-table-formatter.git"
+    },
+    "bugs": {
+        "url": "https://github.com/shuGH/vscode-table-formatter/issues"
+    },
+    "icon": "res/vscode_formatter_icon_128.png",
     "main": "./out/src/extension",
     "contributes": {
         "commands": [
             {
-                "command": "extension.format",
-                "title": "format"
+                "command": "extension.table.formatCurrent",
+                "title": "Table: Format Current"
             },
             {
-                "command": "extension.unformat",
-                "title": "unformat"
-            },
-            {
-                "command": "extension.insertBreak",
-                "title": "insertBreak"
+                "command": "extension.table.formatAll",
+                "title": "Table: Format All"
             }
         ]
     },
+    "activationEvents": [
+        "onCommand:extension.table.formatCurrent",
+        "onCommand:extension.table.formatAll"
+    ],
     "scripts": {
         "vscode:prepublish": "tsc -p ./",
         "compile": "tsc -watch -p ./",
@@ -40,7 +52,8 @@
     },
     "dependencies": {
         "string-width": "2.*",
-        "utils-pad-string": "*"
+        "utils-pad-string": "*",
+        "trim": "*"
     },
     "devDependencies": {
         "typescript": "^2.0.3",
@@ -48,5 +61,6 @@
         "mocha": "^2.3.3",
         "@types/node": "^6.0.40",
         "@types/mocha": "^2.2.32"
-    }
+    },
+    "extensionDependencies": []
 }

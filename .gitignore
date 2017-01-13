@@ -53,9 +53,8 @@ jspm_packages
 
 ### Code ###
 # Visual Studio Code - https://code.visualstudio.com/
-.settings/
-.vscode/
-tsconfig.json
-jsconfig.json
+
+out/
+*.vsix
 
 # End of https://www.gitignore.io/api/node,code

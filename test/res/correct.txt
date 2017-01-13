@@ -1,0 +1,39 @@
+// simple
+
+start
+| Command    | Description                                    |
+| git status | List all new or modified files                 |
+| git diff   | Show file differences that haven't been staged |
+between
+  | あいう        | a     | |   |
+  | bc            | えお  | |   |
+  | d안녕하세요ef | g你好 | | h |
+終わり
+
+// markdown
+
+| Left-aligned | Center-aligned | Right-aligned |     |     |
+| :----------- | :------------: | ------------: | --- | --- |
+| git status   |   git status   |    git status |     |     |
+| git diff     |    git diff    |      git diff |     |     |
+
+// textile
+
+|_. name           |_. age          |
+|   John Doe       |   5            |
+|   Nanashi Gonbei |=.      16      |
+|>.          Right |<. Left-aligned |
+
+// complex
+
+ | :------------- |        :       |>. Right | -----: | ---------: | --- |
+ |   Florence     |        6       |         | あああ |=.    さ    |     |
+ |>.        Right |<. Left-aligned |         |        |            |     |
+ | -------------- | :------------: |   かか  | ------ |_. テキスト | --- |
+ |   git   status |                |         |        |        abc |     |
+
+最低文字数
+---
+--:
+:--
+:-:

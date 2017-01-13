@@ -1,28 +1,43 @@
 'use strict';
 
 import * as vscode from 'vscode';
+import { TableFormatter } from './formatter';
+import { TableEditor } from './editor';
+import { TableInfo, TableHelper } from './helper';
 
-var strWidth = require('string-width')
-var utilPad = require('utils-pad-string')
-
+// Main
 export function activate(context: vscode.ExtensionContext) {
-    console.log('Congratulations, your extension "vscodetableformatter" is now active!');
+    let tableFormatter = new TableFormatter();
+    let tableEditor = new TableEditor();
+    let tableHelper = new TableHelper();
 
-    let cmd1 = vscode.commands.registerCommand('extension.format', () => {
-        vscode.window.showInformationMessage('Hello World!');
+    let formatCommand = vscode.commands.registerTextEditorCommand('extension.table.formatCurrent', (editor, edit) => {
+        var pos = editor.selection.active;
+        if (!tableHelper.isTableLine(editor.document.lineAt(pos.line))) return;
+
+        var info = tableHelper.getTableInfo(editor.document, pos.line);
+        var formatted = tableFormatter.getFormatTableText(editor.document, info);
+        edit.replace(info.range, formatted);
     });
 
-    let cmd2 = vscode.commands.registerCommand('extension.unformat', () => {
-        vscode.window.showInformationMessage('Hello World!');
+    let formatAllCommand = vscode.commands.registerTextEditorCommand('extension.table.formatAll', (editor, edit) => {
+        for (var i = 0; i < editor.document.lineCount; i++) {
+            if (!tableHelper.isTableLine(editor.document.lineAt(i))) continue;
+
+            var info = tableHelper.getTableInfo(editor.document, i);
+            var formatted = tableFormatter.getFormatTableText(editor.document, info);
+            edit.replace(info.range, formatted);
+
+            i = info.range.end.line;
+        }
     });
 
-    let cmd3 = vscode.commands.registerCommand('extension.insertBreak', () => {
-        vscode.window.showInformationMessage('Hello World!');
-    });
+    context.subscriptions.push(tableFormatter);
+    context.subscriptions.push(tableEditor);
+    context.subscriptions.push(tableHelper);
 
-    context.subscriptions.push(cmd1);
-    context.subscriptions.push(cmd2);
-    context.subscriptions.push(cmd3);
+    context.subscriptions.push(formatCommand);
+    context.subscriptions.push(formatAllCommand);
 }
 
 export function deactivate() {
