@@ -1,7 +1,8 @@
 'use strict';
 
 import * as vscode from 'vscode';
-import { CellType, CellAlign, CellInfo, TableInfo, TableHelper } from './helper';
+import { CellType, CellAlign, DelimiterType, CellInfo, TableInfo } from './table';
+import { TableHelper } from './helper';
 
 export class TableEditor {
 

@@ -1,39 +1,49 @@
-// simple
+// plain
 
 start
-| Command    | Description                                    |
-| git status | List all new or modified files                 |
-| git diff   | Show file differences that haven't been staged |
-between
-  | あいう        | a     | |   |
-  | bc            | えお  | |   |
-  | d안녕하세요ef | g你好 | | h |
+  | English  | Hello      | |            |            |
+  | Chinese  | 你好       | | Vietnamese | 嗔嘲       |
+  | Japanese | こんにちは | | Korean     | 안녕하세요 |
 終わり
 
 // markdown
 
-| Left-aligned | Center-aligned | Right-aligned |     |     |
-| :----------- | :------------: | ------------: | --- | --- |
-| git status   |   git status   |    git status |     |     |
-| git diff     |    git diff    |      git diff |     |     |
+| -   |     | update               |    commit     | checkout |
+| --- | --- | :------------------- | :-----------: | -------: |
+| git |     | pull / fetch > merge | commit / push |    clone |
+| hg  |     | pull > update        | commit / push |    clone |
 
 // textile
 
-|_. name           |_. age          |
-|   John Doe       |   5            |
-|   Nanashi Gonbei |=.      16      |
-|>.          Right |<. Left-aligned |
+|_. name           |_. age |
+|   John Doe       |>.  35 |
+|   Jane Doe       |<. 19  |
+|   Nanashi Gonbei |=.  6  |
+
+// grid
+
++------+------+------+------+------+------+
+|      | Mon  | Tue  | Wed  | Thu  | Fri  |
++======+======+======+======+======+======+
+| 田中 | (^^) | (xx) | (xx) | ('') | (^^) |
++------+------+------+------+------+------+
+| 鈴木 | (^^) | (^^) | ('') | (xx) | (^^) |
++------+------+------+------+------+------+
+
+// simple
+
+Input  .      Output
+-----  -----  --------  -------
+A      B      "A or B"  A_and_B
+=====  =====  ========  =======
+False  False  False     False
+True   False  True      False
+=====  =====  ========  =======
 
 // complex
 
- | :------------- |        :       |>. Right | -----: | ---------: | --- |
- |   Florence     |        6       |         | あああ |=.    さ    |     |
- |>.        Right |<. Left-aligned |         |        |            |     |
- | -------------- | :------------: |   かか  | ------ |_. テキスト | --- |
- |   git   status |                |         |        |        abc |     |
-
-最低文字数
----
---:
-:--
-:-:
+|_. 俳句 (Haiku)         |     |                          |                      |
++------------------------+-----+--------------------------+----------------------+
+|   閑さや               |     |       岩にしみ入る       |>.             蝉の声 |
+| :--------------------- | --- | :----------------------: | -------------------- |
+|   How still it is here | --  | Stinging into the stones |   The locusts' trill |
