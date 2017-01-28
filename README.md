@@ -165,23 +165,23 @@ Search extension in marketplace and Install.
 
 ## Roadmap
 
-* [] reStructuredText support
-    * [] Grid table
-    * [] Simple table
+* [ ] reStructuredText support
+    * [x] Grid table
+    * [ ] Simple table
         * Perhaps need to specific syntax (e.g. No space, interpose with double quotation）
-* [] CSV support
-    * [] Formatting
+* [ ] CSV support
+    * [ ] Formatting
         * Perhaps it will be specific command
-    * [] Escaping double quotation
-* [] Simple table editing
-	* [] Insert blank col and blank row
-	* [] Insert escaped pipe and break
-	* [] Convert to plain text table from CSV
-* [] Configuration
-    * [] Switching Enable Text algin
-    * [] Escaped pipe string
-    * [] Escaped break string
-* [] Fast and simple shortcut format in table syntax
+    * [ ] Escaping double quotation
+* [ ] Simple table editing
+	* [ ] Insert blank col and blank row
+	* [ ] Insert escaped pipe and break
+	* [ ] Convert to plain text table from CSV
+* [ ] Configuration
+    * [ ] Switching Enable Text algin
+    * [ ] Escaped pipe string
+    * [ ] Escaped break string
+* [ ] Fast and simple shortcut format in table syntax
     * e.g.) Press Tab key in table syntax, and format current table
     * Probably needs updating of VSCood features about key bindings "when" property.
 

@@ -5,7 +5,7 @@
 * reStructuredText
     * Simple table
 
-## [1.0.1] - 2017-
+## [1.0.1] - 2017-01-28
 
 * Support reStructuredText table syntax.
     * Grid table
