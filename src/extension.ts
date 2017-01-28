@@ -1,9 +1,10 @@
 'use strict';
 
 import * as vscode from 'vscode';
+import { TableInfo } from './table';
+import { TableHelper } from './helper';
 import { TableFormatter } from './formatter';
 import { TableEditor } from './editor';
-import { TableInfo, TableHelper } from './helper';
 
 // Main
 export function activate(context: vscode.ExtensionContext) {

@@ -4,7 +4,8 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as Extension from '../src/extension';
 
-import { TableInfo, TableHelper } from '../src/helper';
+import { TableInfo } from '../src/table';
+import { TableHelper } from '../src/helper';
 import { TableFormatter } from '../src/formatter';
 import { TableEditor } from '../src/editor';
 
@@ -27,19 +28,41 @@ suite("Extension Tests", () => {
     var tableFormatter = new TableFormatter();
     var tableEditor = new TableEditor();
     var testSettings = [
-        new TestSetting("Simple Formatting", "input.txt", "correct.txt", [
-            new vscode.Position(4, 2),
-            new vscode.Position(8, 4)
+        new TestSetting("Plain Formatting", "input.txt", "correct.txt", [
+            new vscode.Position(3, 0),
+            new vscode.Position(4, 10),
+            new vscode.Position(5, 40)
         ]),
         new TestSetting("Markdown Formatting", "input.txt", "correct.txt", [
-            new vscode.Position(16, 8)
+            new vscode.Position(10, 8),
+            new vscode.Position(11, 8),
+            new vscode.Position(12, 8),
+            new vscode.Position(13, 8)
         ]),
         new TestSetting("Textile Formatting", "input.txt", "correct.txt", [
-            new vscode.Position(24, 9)
+            new vscode.Position(17, 6),
+            new vscode.Position(18, 3),
+            new vscode.Position(19, 9),
+            new vscode.Position(20, 0)
         ]),
+        new TestSetting("Grid Formatting", "input.txt", "correct.txt", [
+            new vscode.Position(24, 0),
+            new vscode.Position(25, 0),
+            new vscode.Position(26, 0),
+            new vscode.Position(27, 0),
+            new vscode.Position(28, 1),
+            new vscode.Position(29, 1),
+            new vscode.Position(30, 1)
+        ]),
+        // new TestSetting("Simple Formatting", "input.txt", "correct.txt", [
+        //     new vscode.Position(36, 12)
+        // ]),
         new TestSetting("Complex Formatting", "input.txt", "correct.txt", [
-            new vscode.Position(30, 9),
-            new vscode.Position(32, 0)
+            new vscode.Position(44, 10),
+            new vscode.Position(45, 1),
+            new vscode.Position(46, 10),
+            new vscode.Position(47, 1),
+            new vscode.Position(48, 20)
         ])
     ];
     var rootPath = path.join(__dirname, "../../test/res");
@@ -89,5 +112,5 @@ suite("Extension Tests", () => {
         test(elem.testName, (done) => {
             formatTest(elem).then(() => done(), done);
         });
-    });    
+    });
 });
