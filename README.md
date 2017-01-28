@@ -1,6 +1,6 @@
 # VSCode Table Formatter
 
-[![codebeat badge](https://codebeat.co/badges/be046828-b86b-452a-a5fa-aee399b8ddbd)](https://codebeat.co/projects/github-com-shugh-vscode-table-formatter) [![Latest Release](https://vsmarketplacebadge.apphb.com/version-short/shuworks.vscode-table-formatter.svg)](https://marketplace.visualstudio.com/items?itemName=shuworks.vscode-table-formatter) [![Installs](https://vsmarketplacebadge.apphb.com/installs/shuworks.vscode-table-formatter.svg)](https://marketplace.visualstudio.com/items?itemName=shuworks.vscode-table-formatter) [![Rating](https://vsmarketplacebadge.apphb.com/rating-short/shuworks.vscode-table-formatter.svg)](https://marketplace.visualstudio.com/items?itemName=shuworks.vscode-table-formatter#review-details) [![Licence](https://img.shields.io/github/license/shuGH/vscode-table-formattervg)](https://github.com/shuGH/vscode-table-formatter/blob/master/LICENCE.md)
+[![codebeat badge](https://codebeat.co/badges/be046828-b86b-452a-a5fa-aee399b8ddbd)](https://codebeat.co/projects/github-com-shugh-vscode-table-formatter) [![Latest Release](https://vsmarketplacebadge.apphb.com/version-short/shuworks.vscode-table-formatter.svg)](https://marketplace.visualstudio.com/items?itemName=shuworks.vscode-table-formatter) [![Installs](https://vsmarketplacebadge.apphb.com/installs/shuworks.vscode-table-formatter.svg)](https://marketplace.visualstudio.com/items?itemName=shuworks.vscode-table-formatter) [![Rating](https://vsmarketplacebadge.apphb.com/rating-short/shuworks.vscode-table-formatter.svg)](https://marketplace.visualstudio.com/items?itemName=shuworks.vscode-table-formatter#review-details) [![Licence](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/shuGH/vscode-table-formatter/blob/master/LICENSE.md)
 
 Table Formatter is a extention package for the Visual Studio Code to format table syntax.
 
@@ -191,7 +191,7 @@ Search extension in marketplace and Install.
 
 ## Licence
 
-[MIT License](https://github.com/shuGH/vscode-table-formatter/blob/master/LICENCE.md)
+[MIT License](https://github.com/shuGH/vscode-table-formatter/blob/master/LICENSE.md)
 
 ## Author
 

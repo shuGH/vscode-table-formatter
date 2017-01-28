@@ -2,7 +2,7 @@
     "name": "vscode-table-formatter",
     "displayName": "Table Formatter",
     "description": "Format table syntax of markdown and textile.",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "publisher": "shuworks",
     "author": "Shuzo Iwasaki <shu.works.7@gmail.com>",
     "engines": {
