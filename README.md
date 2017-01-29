@@ -36,6 +36,7 @@ Supported markup language:
     * Align
 * reStructuredText
     * Grid table
+    * Simple table
 
 Not supported:
 
@@ -69,7 +70,7 @@ Command title:
 
 Sample:
 
-* Plain text table [*1](#1)
+* Plain Text Table <a href="#1">*1</a>
 
     ```
     |English|Hello
@@ -133,10 +134,10 @@ Sample:
     +------+------+------+------+------+------+
     ```
 
-<!---
-* Simple Table [*2](#2)
+* Simple Table <a href="#2">*2</a>
 
     ```
+    =
     Input . Output
     -
     A B "A or B" A_and_B
@@ -146,6 +147,7 @@ Sample:
     =
 
     // =>
+    =====  =====  ========  =======
     Input  .      Output
     -----  -----  --------  -------
     A      B      "A or B"  A_and_B
@@ -154,7 +156,6 @@ Sample:
     True   False  True      False
     =====  =====  ========  =======
     ```
--->
 
 ## Installation
 
@@ -165,10 +166,9 @@ Search extension in marketplace and Install.
 
 ## Roadmap
 
-* [ ] reStructuredText support
+* [x] reStructuredText support
     * [x] Grid table
-    * [ ] Simple table
-        * Perhaps need to specific syntax (e.g. No space, interpose with double quotation）
+    * [x] Simple table
 * [ ] CSV support
     * [ ] Formatting
         * Perhaps it will be specific command
@@ -201,3 +201,6 @@ Search extension in marketplace and Install.
 
 <a name="1"></a>
 *1 It is misaligned because this monospaced font not compatible with CJK.
+
+<a name="2"></a>
+*2 Need to specific syntax. One cell content have No space, or put between double quotation.

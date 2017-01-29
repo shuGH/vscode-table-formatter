@@ -30,7 +30,8 @@ export enum CellAlign {
 // Delimiter type
 export enum DelimiterType {
     Pipe,
-    Plus
+    Plus,
+    Space
 };
 
 // Cell info
