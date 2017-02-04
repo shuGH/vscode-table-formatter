@@ -6,6 +6,23 @@ import { CellType, CellAlign, DelimiterType, CellInfo, TableInfo } from './table
 var strWidth = require('string-width')
 var trim = require('trim')
 
+// Table format type
+export enum TableFormatType {
+    // separate with pipe table
+    Normal,
+    // rest simple table
+    Simple
+};
+
+// Table line
+export enum TableLineFlag {
+    None = 0,
+    HasPipe = 1,
+    PlusSeparator = 2,
+    SimpleSeparator = 4,
+    NotEmpty = 8
+};
+
 // Separator type
 enum SeparatorType {
     None,
@@ -22,30 +39,147 @@ export class TableHelper {
     }
 
     // テーブル記法の行か
-    public isTableLine(line: vscode.TextLine): boolean {
+    public isTableLine(line: vscode.TextLine, flag: TableLineFlag): boolean {
         if (line.isEmptyOrWhitespace) return false;
-        // 行が"|"を含む、または行が+-=のみで構成されている
-        // @TODO: SimpleTable用の判定
-        return /\||^(?=.*?\+)[\-=+]+$/.test(line.text);
+
+        if (flag & TableLineFlag.HasPipe) {
+            // 行が"|"を含む
+            if (/\|/.test(line.text)) return true;
+        }
+        if (flag & TableLineFlag.PlusSeparator) {
+            // 行が+-=のみで構成されている
+            if (/^(?=.*?\+)[\-=+]+$/.test(line.text)) return true;
+        }
+        if (flag & TableLineFlag.SimpleSeparator) {
+            // 行が-のみまたは=のみで構成されている
+            if (/^[\- ]+$|^[= ]+$/.test(line.text)) return true;
+        }
+        if (flag & TableLineFlag.NotEmpty) {
+            // 行が空でない
+            if (!line.isEmptyOrWhitespace) return true;
+        }
+
+        return false;
     }
 
-    // 行の解析
-    public getCellInfoList(line: vscode.TextLine): Array<CellInfo> {
-        if (line.isEmptyOrWhitespace) return [];
+    // Tableの範囲取得
+    public getTableRange(doc: vscode.TextDocument, line: number, formatType: TableFormatType, minLine: number = 0, maxCount: number = -1): vscode.Range {
+        var startLine = line;
+        var endLine = line;
 
-        var list: Array<CellInfo> = [];
+        if (maxCount < 0) maxCount = doc.lineCount - minLine;
+
+        switch (formatType) {
+            case TableFormatType.Normal:
+                // 現在の行を判定
+                if (this.isTableLine(doc.lineAt(line), TableLineFlag.HasPipe | TableLineFlag.PlusSeparator)) {
+                    // 後方に操作し開始行を取得
+                    for (var i = line - 1; i >= minLine; i--) {
+                        if (!this.isTableLine(doc.lineAt(i), TableLineFlag.HasPipe | TableLineFlag.PlusSeparator)) break;
+                        startLine = i;
+                    }
+
+                    // 前方に操作し終了行を取得
+                    for (var i = line + 1; i < minLine + maxCount; i++) {
+                        if (!this.isTableLine(doc.lineAt(i), TableLineFlag.HasPipe | TableLineFlag.PlusSeparator)) break;
+                        endLine = i;
+                    }
+                }
+                break;
+
+            case TableFormatType.Simple:
+                var hasSeparator = false;
+
+                // 現在の行を判定
+                if (this.isTableLine(doc.lineAt(line), TableLineFlag.NotEmpty)) {
+                    // 後方に操作し開始行を取得（空白行またドキュメント始まり、セパレーター行の構成を探す）
+                    for (var i = line - 1; i >= minLine - 1; i--) {
+                        if (i == minLine -1 || !this.isTableLine(doc.lineAt(i), TableLineFlag.NotEmpty)) {
+                            if (i + 1 < minLine + maxCount && this.isTableLine(doc.lineAt(i + 1), TableLineFlag.SimpleSeparator)) {
+                                startLine = i + 1;
+                                hasSeparator = true;
+                            }
+                            break;
+                        }
+                    }
+
+                    // 前方に操作し終了行を取得（セパレーター行、空白行またはドキュメント終わりの構成を探す）
+                    if (hasSeparator) {
+                        hasSeparator = false;
+                        for (var i = line + 1; i < minLine + maxCount + 1; i++) {
+                            if (i == minLine + maxCount || !this.isTableLine(doc.lineAt(i), TableLineFlag.NotEmpty)) {
+                                if (i - 1 >= minLine && this.isTableLine(doc.lineAt(i - 1), TableLineFlag.SimpleSeparator)) {
+                                    endLine = i - 1;
+                                    hasSeparator = true;
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                // 正しいセパレーター行がない場合は初期化
+                if (!hasSeparator) {
+                    startLine = line;
+                    endLine = line;
+                }
+                break;
+        }
+
+        // 複数列にヒットしない場合はisEmptyに引っかかるように0にする
+        var endChar = (startLine == endLine) ? 0 : doc.lineAt(endLine).range.end.character;
+        return new vscode.Range(
+            new vscode.Position(startLine, 0),
+            new vscode.Position(endLine, endChar)
+        );
+    }
+
+    // 行の文字列を分割する（必ず先頭が空白で末尾は空白でないようにして返す）
+    public getSplitLineText(text: string, formatType: TableFormatType): { cells: Array<string>, delimiter: DelimiterType } {
         var cells = [];
         var delimiter = DelimiterType.Pipe;
 
-        // |がないときのみ、+で分ける
-        if (line.text.indexOf('|') != -1) {
-            cells = line.text.split("|", -1);
-            delimiter = DelimiterType.Pipe;
+        switch (formatType) {
+            case TableFormatType.Normal:
+                // |がないときのみ+で分ける（末尾の空白も含めるため-1）
+                if (text.indexOf('|') != -1) {
+                    cells = text.split("|", -1);
+                    delimiter = DelimiterType.Pipe;
+                }
+                else {
+                    cells = text.split("+", -1);
+                    delimiter = DelimiterType.Plus;
+                }
+                break;
+            case TableFormatType.Simple:
+                // 空白で区切る（""か''で囲まれた範囲の空白は無視する）
+                cells = text.match(/('[^']*'|"[^"]*")|[^ ]+/g);
+                delimiter = DelimiterType.Space;
+                break;
         }
-        else {
-            cells = line.text.split("+", -1);
-            delimiter = DelimiterType.Plus;
+
+        // 先頭に空白の追加
+        if (cells.length >= 1 && trim(cells[0]) != "") {
+            cells.unshift("");
         }
+
+        // 末尾の空白の削除
+        if (cells.length >= 1 && trim(cells[cells.length - 1]) == "") {
+            cells.pop();
+        }
+
+        return { cells: cells, delimiter: delimiter };
+    }
+    
+    // 行の解析
+    public getCellInfoList(line: vscode.TextLine, formatType: TableFormatType): Array<CellInfo> {
+        if (line.isEmptyOrWhitespace) return [];
+
+        var splitText = this.getSplitLineText(line.text, formatType);
+
+        var list: Array<CellInfo> = [];
+        var cells = splitText.cells;
+        var delimiter = splitText.delimiter;
 
         // 空白列を追加
         list.push(new CellInfo(line.firstNonWhitespaceCharacterIndex, delimiter));
@@ -53,10 +187,8 @@ export class TableHelper {
         for (var i = 0; i < cells.length; i++) {
             var trimed = trim(cells[i]);
 
-            // 最初の空白は追加済みなので無視する
-            if (i == 0 && trimed == "") continue;
-            // 最後の空白は追加せず無視する
-            if (i == cells.length - 1 && trimed == "") continue;
+            // 先頭は空白で追加済みなので無視する
+            if (i == 0) continue;
 
             var size = strWidth(trimed);
             var type = (size == 0) ? CellType.CM_Blank : CellType.CM_Content;
@@ -71,39 +203,50 @@ export class TableHelper {
                 type = CellType.CM_EquallSeparator;
                 align = CellAlign.Left;
             }
-            // Markdown ----------------
-            else if (/^:-+$/.test(trimed)) {
-                type = CellType.MD_LeftSeparator;
-                align = CellAlign.Left;
-            }
-            else if (/^-+:$/.test(trimed)) {
-                type = CellType.MD_RightSeparator;
-                align = CellAlign.Right;
-            }
-            else if (/^:-+:$/.test(trimed)) {
-                type = CellType.MD_CenterSeparator;
-                align = CellAlign.Center;
-            }
-            // Textile ----------------
-            else if (/^_\./.test(trimed)) {
-                size = strWidth(trim(trimed.substring(2)));
-                type = CellType.TT_HeaderPrefix;
-                align = CellAlign.Left;
-            }
-            else if (/^<\./.test(trimed)) {
-                size = strWidth(trim(trimed.substring(2)));
-                type = CellType.TT_LeftPrefix;
-                align = CellAlign.Left;
-            }
-            else if (/^>\./.test(trimed)) {
-                size = strWidth(trim(trimed.substring(2)));
-                type = CellType.TT_RightPrefix;
-                align = CellAlign.Right;
-            }
-            else if (/^=\./.test(trimed)) {
-                size = strWidth(trim(trimed.substring(2)));
-                type = CellType.TT_CenterPrefix;
-                align = CellAlign.Center;
+            // ----------------
+            else {
+                switch (formatType) {
+                    case TableFormatType.Normal:
+                        // Markdown ----------------
+                        if (/^:-+$/.test(trimed)) {
+                            type = CellType.MD_LeftSeparator;
+                            align = CellAlign.Left;
+                        }
+                        else if (/^-+:$/.test(trimed)) {
+                            type = CellType.MD_RightSeparator;
+                            align = CellAlign.Right;
+                        }
+                        else if (/^:-+:$/.test(trimed)) {
+                            type = CellType.MD_CenterSeparator;
+                            align = CellAlign.Center;
+                        }
+                        // Textile ----------------
+                        else if (/^_\./.test(trimed)) {
+                            size = strWidth(trim(trimed.substring(2)));
+                            type = CellType.TT_HeaderPrefix;
+                            align = CellAlign.Left;
+                        }
+                        else if (/^<\./.test(trimed)) {
+                            size = strWidth(trim(trimed.substring(2)));
+                            type = CellType.TT_LeftPrefix;
+                            align = CellAlign.Left;
+                        }
+                        else if (/^>\./.test(trimed)) {
+                            size = strWidth(trim(trimed.substring(2)));
+                            type = CellType.TT_RightPrefix;
+                            align = CellAlign.Right;
+                        }
+                        else if (/^=\./.test(trimed)) {
+                            size = strWidth(trim(trimed.substring(2)));
+                            type = CellType.TT_CenterPrefix;
+                            align = CellAlign.Center;
+                        }
+                        break;
+
+                    case TableFormatType.Simple:
+                        // NOP ----------------
+                        break;
+                }
             }
 
             list.push(new CellInfo(size, delimiter, type, align));
@@ -258,32 +401,15 @@ export class TableHelper {
     }
 
     // 表データの取得
-    public getTableInfo(doc: vscode.TextDocument, line: number): TableInfo {
-        // 後方に操作し開始行を取得
-        var startLine = line;
-        for (var i = line; i >= 0; i--) {
-            if (!this.isTableLine(doc.lineAt(i))) break;
-            startLine = i;
-        }
-
-        // 前方に操作し終了行を取得
-        var endLine = line;
-        for (var i = line + 1; i < doc.lineCount; i++) {
-            if (!this.isTableLine(doc.lineAt(i))) break;
-            endLine = i;
-        }
-
+    public getTableInfo(doc: vscode.TextDocument, range: vscode.Range, formatType: TableFormatType): TableInfo {
         // 各行の解析
         var grid: Array<Array<CellInfo>> = [];
-        for (var i = startLine; i <= endLine; i++) {
-            grid.push(this.getCellInfoList(doc.lineAt(i)));
+        for (var i = range.start.line; i <= range.end.line; i++) {
+            grid.push(this.getCellInfoList(doc.lineAt(i), formatType));
         }
 
         return new TableInfo(
-            new vscode.Range(
-                new vscode.Position(startLine, 0),
-                new vscode.Position(endLine, doc.lineAt(endLine).range.end.character)
-            ),
+            range,
             this.getNormalizedCellGrid(grid)
         );
     }

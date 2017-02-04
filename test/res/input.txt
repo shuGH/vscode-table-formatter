@@ -32,6 +32,7 @@ Nanashi Gonbei|=.6
 
 // simple
 
+=
 Input . Output
 -
 A B "A or B" A_and_B

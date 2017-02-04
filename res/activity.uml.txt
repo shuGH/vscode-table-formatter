@@ -1,0 +1,53 @@
+@startuml
+start
+:Format Current;
+if (範囲取得（|,+）) then (有)
+  :フォーマット（|,+）;
+else (無)
+    if (範囲取得（Simple）) then (有)
+    :フォーマット（Simple）;
+    else (無)
+    endif
+endif
+stop
+@enduml
+
+@startuml
+start
+:Format All;
+:lines = [], ranges = [];
+partition 通常テーブルのフォーマット、Simpleセパレーター行の走査 {
+    :x = 0;
+    while (ドキュメントを走査済み？) is (No)
+        :x行を走査;
+        if (範囲取得（|,+）) then (有)
+            :フォーマット（|,+）;
+            :ranges.push(フォーマット範囲);
+            :x = 範囲のend行;
+        else (無)
+            if (セパレーター行か（Simple）？) then (Yes)
+                :lines.push(x);
+            else (No)
+            endif
+            :x++;
+        endif
+    endwhile (Yes)
+}
+partition Simpleテーブルのフォーマット {
+    :i = 0, endline = -1;
+    while (linesを走査済み？) is (No)
+        :lines[i]行を走査;
+        if (lines[i] <= endline) then (Yes)
+        else (No)
+            if (rangesを含まない範囲取得（Simple, ranges）) then (有)
+                :フォーマット（Simple）;
+                :endline = 範囲のend行;
+            else (無)
+            endif
+        endif
+        :i++";
+    endwhile (Yes)
+}
+stop
+@enduml
+

@@ -2,7 +2,7 @@
 
 import * as vscode from 'vscode';
 import { CellType, CellAlign, DelimiterType, CellInfo, TableInfo } from './table';
-import { TableHelper } from './helper';
+import { TableHelper, TableFormatType } from './helper';
 
 var utilPad = require('utils-pad-string')
 var strWidth = require('string-width')
@@ -17,27 +17,29 @@ export class TableFormatter {
     }
 
     // フォーマット済みの文字列を返す
-    public getFormatTableText(doc: vscode.TextDocument, info: TableInfo, option?: any): string {
+    public getFormatTableText(doc: vscode.TextDocument, info: TableInfo, formatType: TableFormatType, option?: any): string {
         if (!info.isValid()) return "";
 
+        var tableHelper = new TableHelper();
+        
         var formatted = "";
         var maxList = info.getMaxCellSizeList();
         info.cellGrid.forEach((row, i) => {
             var line = i + info.range.start.line;
-            formatted += this.getFormattedLineText(doc.lineAt(line), row, maxList);
+
+            formatted += this.getFormattedLineText(
+                tableHelper.getSplitLineText(doc.lineAt(line).text, formatType).cells,
+                row, maxList, formatType
+            );
+
             if (line != info.range.end.line) formatted += '\n';
         });
         return formatted;
     }
 
     // 行のフォーマット済みの文字列を返す
-    private getFormattedLineText(line: vscode.TextLine, cellInfoList: Array<CellInfo>, maxlist: Array<number>, option?: any): string {
+    private getFormattedLineText(cells: Array<string>, cellInfoList: Array<CellInfo>, maxlist: Array<number>, formatType: TableFormatType, option?: any): string {
         if (cellInfoList && maxlist && cellInfoList.length != maxlist.length) return "";
-
-        var cells = line.text.split("|", -1);
-        if (cells.length > 1 && trim(cells[0]) != "") {
-            cells.unshift("");
-        }
 
         var formatted = "";
         maxlist.forEach((elem, i) => {
@@ -54,14 +56,14 @@ export class TableFormatter {
                     size += (cellInfo.delimiter == DelimiterType.Plus) ? 2 : 0;
                     formatted += this.getPaddingText(i, size, 0, cellInfo.delimiter);
                     formatted += utilPad(trimed, size, { rpad: "-" });
-                    formatted += this.getDelimiterText(i, cellInfo.delimiter);
+                    formatted += this.getDelimiterText(i, cellInfoList.length, cellInfo.delimiter);
                     break;
                 case CellType.CM_EquallSeparator:
                     size += cellInfo.padding;
                     size += (cellInfo.delimiter == DelimiterType.Plus) ? 2 : 0;
                     formatted += this.getPaddingText(i, size, 0, cellInfo.delimiter);
                     formatted += utilPad(trimed, size, { rpad: "=" });
-                    formatted += this.getDelimiterText(i, cellInfo.delimiter);
+                    formatted += this.getDelimiterText(i, cellInfoList.length, cellInfo.delimiter);
                     break;
 
                 // Markdown ----------------
@@ -69,19 +71,19 @@ export class TableFormatter {
                     size += cellInfo.padding;
                     formatted += this.getPaddingText(i, size, 0, cellInfo.delimiter);
                     formatted += utilPad(trimed, size, { rpad: "-" });
-                    formatted += this.getDelimiterText(i, cellInfo.delimiter);
+                    formatted += this.getDelimiterText(i, cellInfoList.length, cellInfo.delimiter);
                     break;
                 case CellType.MD_RightSeparator:
                     size += cellInfo.padding;
                     formatted += this.getPaddingText(i, size, 0, cellInfo.delimiter);
                     formatted += utilPad(trimed, size, { lpad: "-" });
-                    formatted += this.getDelimiterText(i, cellInfo.delimiter);
+                    formatted += this.getDelimiterText(i, cellInfoList.length, cellInfo.delimiter);
                     break;
                 case CellType.MD_CenterSeparator:
                     size += cellInfo.padding;
                     formatted += this.getPaddingText(i, size, 0, cellInfo.delimiter);
                     formatted += utilPad(":", size - 1, { rpad: "-" }) + ":";
-                    formatted += this.getDelimiterText(i, cellInfo.delimiter);
+                    formatted += this.getDelimiterText(i, cellInfoList.length, cellInfo.delimiter);
                     break;
 
                 // Textile ----------------
@@ -89,45 +91,48 @@ export class TableFormatter {
                     trimed = trim(trimed.substring(2));
                     formatted += (i == 0) ? "" : (size == 0) ? "_." : "_. ";
                     formatted += this.getAlignedText(trimed, size, cellInfo.align);
-                    formatted += this.getDelimiterText(i, cellInfo.delimiter);
+                    formatted += this.getDelimiterText(i, cellInfoList.length, cellInfo.delimiter);
                     break;
                 case CellType.TT_LeftPrefix:
                     trimed = trim(trimed.substring(2));
                     formatted += (i == 0) ? "" : (size == 0) ? "<." : "<. ";
                     formatted += this.getAlignedText(trimed, size, cellInfo.align);
-                    formatted += this.getDelimiterText(i, cellInfo.delimiter);
+                    formatted += this.getDelimiterText(i, cellInfoList.length, cellInfo.delimiter);
                     break;
                 case CellType.TT_RightPrefix:
                     trimed = trim(trimed.substring(2));
                     formatted += (i == 0) ? "" : (size == 0) ? ">." : ">. ";
                     formatted += this.getAlignedText(trimed, size, cellInfo.align);
-                    formatted += this.getDelimiterText(i, cellInfo.delimiter);
+                    formatted += this.getDelimiterText(i, cellInfoList.length, cellInfo.delimiter);
                     break;
                 case CellType.TT_CenterPrefix:
                     trimed = trim(trimed.substring(2));
                     formatted += (i == 0) ? "" : (size == 0) ? "=." : "=. ";
                     formatted += this.getAlignedText(trimed, size, cellInfo.align);
-                    formatted += this.getDelimiterText(i, cellInfo.delimiter);
+                    formatted += this.getDelimiterText(i, cellInfoList.length, cellInfo.delimiter);
                     break;
 
                 // Etc ----------------
                 default:
                     formatted += this.getPaddingText(i, size, cellInfo.padding, cellInfo.delimiter);
                     formatted += this.getAlignedText(trimed, size, cellInfo.align);
-                    formatted += this.getDelimiterText(i, cellInfo.delimiter);
+                    formatted += this.getDelimiterText(i, cellInfoList.length, cellInfo.delimiter);
                     break;
             }
         })
         return formatted;
     }
 
-    private getPaddingText(line: number, size: number, padding: number, delimiter: DelimiterType): string {
+    private getPaddingText(cell: number, size: number, padding: number, delimiter: DelimiterType): string {
         var str = "";
         switch (delimiter) {
             case DelimiterType.Pipe:
-                str = (line == 0 || size == 0) ? "" : " ";
+                str = (cell == 0 || size == 0) ? "" : " ";
                 break;
             case DelimiterType.Plus:
+                str = "";
+                break;
+            case DelimiterType.Space:
                 str = "";
                 break;
         }
@@ -150,12 +155,15 @@ export class TableFormatter {
         return utilPad(text, size, opt);
     }
 
-    private getDelimiterText(line: number, delimiter: DelimiterType): string {
+    private getDelimiterText(cell: number, rowSize: number,delimiter: DelimiterType): string {
         switch (delimiter) {
             case DelimiterType.Pipe:
-                return (line == 0) ? "|" : " |";
+                return (cell == 0) ? "|" : " |";
             case DelimiterType.Plus:
                 return "+";
+            case DelimiterType.Space:
+                // 2スペース推奨
+                return (cell == 0 || cell == rowSize - 1) ? "" : "  ";
         }
         return "";
     }
