@@ -199,8 +199,6 @@ Search extension in marketplace and Install.
 
 **Enjoy!**
 
-<a name="1"></a>
-*1 It is misaligned because this monospaced font not compatible with CJK.
+<a name="1"></a>*1 It is misaligned because this monospaced font not compatible with CJK.
 
-<a name="2"></a>
-*2 Need to specific syntax. One cell content have No space, or put between double quotation.
+<a name="2"></a>*2 Need to specific syntax. One cell content have no space, or put between double quotation.
