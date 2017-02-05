@@ -33,7 +33,7 @@ start
 // simple
 
 =====  =====  ========  =======
-Input  .      Output           
+Input  .      Output       
 -----  -----  --------  -------
 A      B      "A or B"  A_and_B
 =====  =====  ========  =======

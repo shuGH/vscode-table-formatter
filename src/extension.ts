@@ -15,7 +15,8 @@ export function activate(context: vscode.ExtensionContext) {
             oneSpacePadding: true
         },
         common: {
-            explicitFullwidthChars: []
+            explicitFullwidthChars: [],
+            trimTrailingWhitespace: true
         }
     }
 
@@ -23,6 +24,7 @@ export function activate(context: vscode.ExtensionContext) {
     let tableFormatter = new TableFormatter(settings, tableHelper);
     let tableEditor = new TableEditor();
 
+    // 設定の読み込み
     function initialize(config: vscode.WorkspaceConfiguration) {
         settings.markdown.oneSpacePadding = config.get('markdown.oneSpacePadding', true);
         let chars = config.get('common.explicitFullwidthChars', []).filter(function (elem, i, self) {
@@ -32,6 +34,7 @@ export function activate(context: vscode.ExtensionContext) {
         chars.forEach((char, i) => {
             settings.common.explicitFullwidthChars.push(new RegExp(char, 'g'));
         });
+        settings.common.trimTrailingWhitespace = config.get('common.trimTrailingWhitespace', true);
         isInitilized = true;
     }
 
@@ -41,35 +44,43 @@ export function activate(context: vscode.ExtensionContext) {
 
     initialize(vscode.workspace.getConfiguration(configTitle));
 
+    // --------------------------------
+    // カーソル位置のテーブルのフォーマット
+    // --------------------------------
     let formatCommand = vscode.commands.registerTextEditorCommand('extension.table.formatCurrent', (editor, edit) => {
+        let start = new Date().getTime();
+
         // 初期化
         if (!isInitilized) initialize(vscode.workspace.getConfiguration(configTitle));
 
         // 範囲の取得（Normal）
+        var info: TableInfo;
         var pos = editor.selection.active;
         var range = tableHelper.getTableRange(editor.document, pos.line, TableFormatType.Normal);
-        // フォーマット（Normal）
+        // 空でなければフォーマット（Normal）
         if (!range.isEmpty) {
-            var info = tableHelper.getTableInfo(editor.document, range, TableFormatType.Normal);
-            var formatted = tableFormatter.getFormatTableText(editor.document, info, TableFormatType.Normal);
+            info = tableHelper.getTableInfo(editor.document, range, TableFormatType.Normal);
+            var formatted = tableFormatter.getFormattedTableText(editor.document, info, TableFormatType.Normal, tableHelper);
             edit.replace(info.range, formatted);
-
-            console.log("Table: Formatting succeeded!", "start: " + info.range.start.line, "end: " + info.range.end.line, "row: " + info.size.row, "col: " + (info.size.col - 1));
         }
         else {
             // 範囲の取得（Simple）
             var range = tableHelper.getTableRange(editor.document, pos.line, TableFormatType.Simple);
-            // フォーマット（Simple）
+            // 空でなければフォーマット（Simple）
             if (!range.isEmpty) {
-                var info = tableHelper.getTableInfo(editor.document, range, TableFormatType.Simple);
-                var formatted = tableFormatter.getFormatTableText(editor.document, info, TableFormatType.Simple);
+                info = tableHelper.getTableInfo(editor.document, range, TableFormatType.Simple);
+                var formatted = tableFormatter.getFormattedTableText(editor.document, info, TableFormatType.Simple, tableHelper);
                 edit.replace(info.range, formatted);
-
-                console.log("Table: Formatting simple succeeded!", "start: " + info.range.start.line, "end: " + info.range.end.line, "row: " + info.size.row, "col: " + (info.size.col - 1));
             }
         }
+
+        let elasped = new Date().getTime() - start;
+        console.log("Table: Formatting succeeded!", "start: " + info.range.start.line, "end: " + info.range.end.line, "row: " + info.size.row, "col: " + (info.size.col - 1), "time: " + elasped +"ms");
     });
 
+    // --------------------------------
+    // 全テーブルのフォーマット
+    // --------------------------------
     let formatAllCommand = vscode.commands.registerTextEditorCommand('extension.table.formatAll', (editor, edit) => {
         // 初期化
         if (!isInitilized) initialize(vscode.workspace.getConfiguration(configTitle));
@@ -82,10 +93,10 @@ export function activate(context: vscode.ExtensionContext) {
         for (var i = 0; i < editor.document.lineCount; i++) {
             // 範囲の取得（Normal）
             var range = tableHelper.getTableRange(editor.document, i, TableFormatType.Normal);
-            // フォーマット（Normal）
+            // 空でなければフォーマット（Normal）
             if (!range.isEmpty) {
                 var info = tableHelper.getTableInfo(editor.document, range, TableFormatType.Normal);
-                var formatted = tableFormatter.getFormatTableText(editor.document, info, TableFormatType.Normal);
+                var formatted = tableFormatter.getFormattedTableText(editor.document, info, TableFormatType.Normal, tableHelper);
                 edit.replace(info.range, formatted);
 
                 // フォーマット済み範囲を積んでおく（偶数がstart、奇数がend）
@@ -109,35 +120,16 @@ export function activate(context: vscode.ExtensionContext) {
             var line = targetLines[i];
             if (line <= endLine) continue;
 
-            // フォーマット済み範囲を走査しフォーマット対象の範囲を決める
-            var min = (rangeLines.length > 0) ? rangeLines[rangeLines.length - 1] + 1 : 0
-            var cnt = editor.document.lineCount - min;
-            for (var j = checkedIndex; j < rangeLines.length; j++) {
-                // 行が通り越したら
-                if (line < rangeLines[j]) {
-                    // 偶数行（start）
-                    if (j % 2 == 0) {
-                        // フォーマット済み範囲間なので範囲を設定
-                        min = (j == 0) ? 0 : rangeLines[j - 1] + 1;
-                        cnt = rangeLines[j] - min;
-                        checkedIndex = j;
-                    }
-                    // 奇数行（end）
-                    else {
-                        // フォーマット済み範囲内なので無視する
-                        min = 0;
-                        cnt = 0;
-                    }
-                    break;
-                }
-            }
+            // フォーマット対象の範囲を取得
+            var targetRange = tableHelper.getTargetRange(line, checkedIndex, rangeLines, editor.document.lineCount);
+            checkedIndex = targetRange.checkedIndex;
 
             // 範囲の取得（Simple）
-            var range = tableHelper.getTableRange(editor.document, line, TableFormatType.Simple, min, cnt);
-            // フォーマット（Simple）
+            var range = tableHelper.getTableRange(editor.document, line, TableFormatType.Simple, targetRange.min, targetRange.count);
+            // 空でなければフォーマット（Simple）
             if (!range.isEmpty) {
                 var info = tableHelper.getTableInfo(editor.document, range, TableFormatType.Simple);
-                var formatted = tableFormatter.getFormatTableText(editor.document, info, TableFormatType.Simple);
+                var formatted = tableFormatter.getFormattedTableText(editor.document, info, TableFormatType.Simple, tableHelper);
                 edit.replace(info.range, formatted);
 
                 simpleNum++;
@@ -150,12 +142,56 @@ export function activate(context: vscode.ExtensionContext) {
         }
     });
 
+    // --------------------------------
+    // 現在カーソル位置のCSVのフォーマット
+    // --------------------------------
+    // let formatCsvCommand = vscode.commands.registerTextEditorCommand('extension.table.formatCurrentCsv', (editor, edit) => {
+    //     var pos = editor.selection.active;
+
+    //     // 範囲の取得（Normal）
+    //     var range = tableHelper.getTableRange(editor.document, pos.line, TableFormatType.Csv);
+    //     // フォーマット（Normal）
+    //     if (!range.isEmpty) {
+    //         var info = tableHelper.getTableInfo(editor.document, range, TableFormatType.Csv);
+    //         var formatted = tableFormatter.getFormattedTableText(editor.document, info, TableFormatType.Csv, tableHelper);
+    //         edit.replace(info.range, formatted);
+
+    //         console.log("Table: Formatting succeeded!", "start: " + info.range.start.line, "end: " + info.range.end.line, "row: " + info.size.row, "col: " + (info.size.col - 1));
+    //     }
+    // });
+
+    // --------------------------------
+    // 全CSVのフォーマット
+    // --------------------------------
+    // let formatAllCsvCommand = vscode.commands.registerTextEditorCommand('extension.table.formatCurrentAllCsv', (editor, edit) => {
+    //     var normalNum = 0;
+    //     for (var i = 0; i < editor.document.lineCount; i++) {
+    //         // 範囲の取得（Normal）
+    //         var range = tableHelper.getTableRange(editor.document, i, TableFormatType.Csv);
+    //         // フォーマット（Normal）
+    //         if (!range.isEmpty) {
+    //             var info = tableHelper.getTableInfo(editor.document, range, TableFormatType.Csv);
+    //             var formatted = tableFormatter.getFormattedTableText(editor.document, info, TableFormatType.Csv, tableHelper);
+    //             edit.replace(info.range, formatted);
+
+    //             normalNum++;
+    //             i = info.range.end.line + 1;
+    //         }
+    //     }
+
+    //     if (normalNum > 0) {
+    //         console.log("Table: Formatting succeeded!", "total: " + normalNum);
+    //     }
+    // });
+
     context.subscriptions.push(tableFormatter);
     context.subscriptions.push(tableEditor);
     context.subscriptions.push(tableHelper);
 
     context.subscriptions.push(formatCommand);
     context.subscriptions.push(formatAllCommand);
+    // context.subscriptions.push(formatCsvCommand);
+    // context.subscriptions.push(formatAllCsvCommand);
 }
 
 export function deactivate() {

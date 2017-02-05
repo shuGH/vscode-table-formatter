@@ -2,7 +2,7 @@
     "name": "vscode-table-formatter",
     "displayName": "Table Formatter",
     "description": "Format table syntax of Markdown, Textile and reStructuredText.",
-    "version": "1.1.2",
+    "version": "1.2.0",
     "publisher": "shuworks",
     "author": "Shuzo Iwasaki <shu.works.7@gmail.com>",
     "engines": {
@@ -62,6 +62,11 @@
                             }
                         ]
                     }
+                },
+                "tableformatter.markdown.trimTrailingWhitespace": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Remove trailing whitespace or not when formatting table."
                 }
             }
         }
@@ -78,8 +83,8 @@
     },
     "dependencies": {
         "string-width": "2.*",
-        "utils-pad-string": "*",
-        "trim": "*"
+        "utils-pad-string": "1.*",
+        "trim": "0.0.1"
     },
     "devDependencies": {
         "typescript": "^2.0.3",
