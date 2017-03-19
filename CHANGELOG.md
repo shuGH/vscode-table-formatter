@@ -4,6 +4,12 @@
 
 * Support CSV
 
+## [1.0.3] - 2017-03-19
+
+### Fixed
+
+* Issue#3: Reformatting grid tables seems to add spaces every time.
+
 ## [1.0.2] - 2017-02-04
 
 ### Added
