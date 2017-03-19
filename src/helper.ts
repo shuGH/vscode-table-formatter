@@ -170,7 +170,7 @@ export class TableHelper {
 
         return { cells: cells, delimiter: delimiter };
     }
-    
+
     // 行の解析
     public getCellInfoList(line: vscode.TextLine, formatType: TableFormatType): Array<CellInfo> {
         if (line.isEmptyOrWhitespace) return [];
@@ -326,7 +326,7 @@ export class TableHelper {
         // Markdownのセパレータのサイズを設定
         grid.forEach(row => {
             row.forEach(cell => {
-                if (cell.type == CellType.CM_MinusSeparator ||
+                if (cell.type == CellType.CM_MinusSeparator || cell.type == CellType.CM_EquallSeparator ||
                     cell.type == CellType.MD_LeftSeparator || cell.type == CellType.MD_RightSeparator || cell.type == CellType.MD_CenterSeparator) {
                     // 最小である3文字にする
                     cell.setSize(3);
