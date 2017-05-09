@@ -53,37 +53,36 @@ export class TableFormatter {
                 // Common ----------------
                 case CellType.CM_MinusSeparator:
                     size += cellInfo.padding;
-                    size += (cellInfo.delimiter == DelimiterType.Plus) ? 2 : 0;
-                    formatted += this.getPaddingText(i, size, 0, cellInfo.delimiter);
+                    size += (cellInfo.delimiter != DelimiterType.Space) ? 2 : 0;
                     formatted += utilPad(trimed, size, { rpad: "-" });
-                    formatted += this.getDelimiterText(i, cellInfoList.length, cellInfo.delimiter);
+                    formatted += this.getDelimiterText(i, cellInfoList.length, cellInfo.delimiter, false);
                     break;
                 case CellType.CM_EquallSeparator:
                     size += cellInfo.padding;
                     size += (cellInfo.delimiter == DelimiterType.Plus) ? 2 : 0;
                     formatted += this.getPaddingText(i, size, 0, cellInfo.delimiter);
                     formatted += utilPad(trimed, size, { rpad: "=" });
-                    formatted += this.getDelimiterText(i, cellInfoList.length, cellInfo.delimiter);
+                    formatted += this.getDelimiterText(i, cellInfoList.length, cellInfo.delimiter, true);
                     break;
 
                 // Markdown ----------------
                 case CellType.MD_LeftSeparator:
                     size += cellInfo.padding;
-                    formatted += this.getPaddingText(i, size, 0, cellInfo.delimiter);
+                    size += 2;
                     formatted += utilPad(trimed, size, { rpad: "-" });
-                    formatted += this.getDelimiterText(i, cellInfoList.length, cellInfo.delimiter);
+                    formatted += this.getDelimiterText(i, cellInfoList.length, cellInfo.delimiter, false);
                     break;
                 case CellType.MD_RightSeparator:
                     size += cellInfo.padding;
-                    formatted += this.getPaddingText(i, size, 0, cellInfo.delimiter);
+                    size += 2;
                     formatted += utilPad(trimed, size, { lpad: "-" });
-                    formatted += this.getDelimiterText(i, cellInfoList.length, cellInfo.delimiter);
+                    formatted += this.getDelimiterText(i, cellInfoList.length, cellInfo.delimiter, false);
                     break;
                 case CellType.MD_CenterSeparator:
                     size += cellInfo.padding;
-                    formatted += this.getPaddingText(i, size, 0, cellInfo.delimiter);
-                    formatted += utilPad(":", size - 1, { rpad: "-" }) + ":";
-                    formatted += this.getDelimiterText(i, cellInfoList.length, cellInfo.delimiter);
+                    size += 1;
+                    formatted += utilPad(":", size, { rpad: "-" }) + ":";
+                    formatted += this.getDelimiterText(i, cellInfoList.length, cellInfo.delimiter, false);
                     break;
 
                 // Textile ----------------
@@ -91,32 +90,32 @@ export class TableFormatter {
                     trimed = trim(trimed.substring(2));
                     formatted += (i == 0) ? "" : (size == 0) ? "_." : "_. ";
                     formatted += this.getAlignedText(trimed, size, cellInfo.align);
-                    formatted += this.getDelimiterText(i, cellInfoList.length, cellInfo.delimiter);
+                    formatted += this.getDelimiterText(i, cellInfoList.length, cellInfo.delimiter, true);
                     break;
                 case CellType.TT_LeftPrefix:
                     trimed = trim(trimed.substring(2));
                     formatted += (i == 0) ? "" : (size == 0) ? "<." : "<. ";
                     formatted += this.getAlignedText(trimed, size, cellInfo.align);
-                    formatted += this.getDelimiterText(i, cellInfoList.length, cellInfo.delimiter);
+                    formatted += this.getDelimiterText(i, cellInfoList.length, cellInfo.delimiter, true);
                     break;
                 case CellType.TT_RightPrefix:
                     trimed = trim(trimed.substring(2));
                     formatted += (i == 0) ? "" : (size == 0) ? ">." : ">. ";
                     formatted += this.getAlignedText(trimed, size, cellInfo.align);
-                    formatted += this.getDelimiterText(i, cellInfoList.length, cellInfo.delimiter);
+                    formatted += this.getDelimiterText(i, cellInfoList.length, cellInfo.delimiter, true);
                     break;
                 case CellType.TT_CenterPrefix:
                     trimed = trim(trimed.substring(2));
                     formatted += (i == 0) ? "" : (size == 0) ? "=." : "=. ";
                     formatted += this.getAlignedText(trimed, size, cellInfo.align);
-                    formatted += this.getDelimiterText(i, cellInfoList.length, cellInfo.delimiter);
+                    formatted += this.getDelimiterText(i, cellInfoList.length, cellInfo.delimiter, true);
                     break;
 
                 // Etc ----------------
                 default:
                     formatted += this.getPaddingText(i, size, cellInfo.padding, cellInfo.delimiter);
                     formatted += this.getAlignedText(trimed, size, cellInfo.align);
-                    formatted += this.getDelimiterText(i, cellInfoList.length, cellInfo.delimiter);
+                    formatted += this.getDelimiterText(i, cellInfoList.length, cellInfo.delimiter, true);
                     break;
             }
         })
@@ -155,10 +154,10 @@ export class TableFormatter {
         return utilPad(text, size, opt);
     }
 
-    private getDelimiterText(cell: number, rowSize: number,delimiter: DelimiterType): string {
+    private getDelimiterText(cell: number, rowSize: number,delimiter: DelimiterType, rightPadding: boolean): string {
         switch (delimiter) {
             case DelimiterType.Pipe:
-                return (cell == 0) ? "|" : " |";
+                return (cell == 0) ? "|" : (rightPadding ? " |" : "|");
             case DelimiterType.Plus:
                 return "+";
             case DelimiterType.Space:
