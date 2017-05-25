@@ -2,20 +2,43 @@
 
 import * as vscode from 'vscode';
 import { TableInfo } from './table';
-import { TableHelper, TableFormatType, TableLineFlag } from './helper';
+import { Setting, TableHelper, TableFormatType, TableLineFlag } from './helper';
 import { TableFormatter } from './formatter';
 import { TableEditor } from './editor';
 
 // Main
 export function activate(context: vscode.ExtensionContext) {
-    let tableFormatter = new TableFormatter();
+    let isInitilized = false;
+    let configTitle = "tableformatter";
+    let settings: Setting = {
+        markdown: {
+            oneSpacePadding: true
+        },
+        common: {
+        }
+    }
+
+    let tableFormatter = new TableFormatter(settings);
     let tableEditor = new TableEditor();
-    let tableHelper = new TableHelper();
+    let tableHelper = new TableHelper(settings);
+
+    function initialize(config: vscode.WorkspaceConfiguration) {
+        settings.markdown.oneSpacePadding = config.get('markdown.oneSpacePadding', true);
+        isInitilized = true;
+    }
+
+    vscode.workspace.onDidChangeConfiguration(() => {
+        initialize(vscode.workspace.getConfiguration(configTitle));
+    }, null, context.subscriptions);
+
+    initialize(vscode.workspace.getConfiguration(configTitle));
 
     let formatCommand = vscode.commands.registerTextEditorCommand('extension.table.formatCurrent', (editor, edit) => {
-        var pos = editor.selection.active;
+        // 初期化
+        if (!isInitilized) initialize(vscode.workspace.getConfiguration(configTitle));
 
         // 範囲の取得（Normal）
+        var pos = editor.selection.active;
         var range = tableHelper.getTableRange(editor.document, pos.line, TableFormatType.Normal);
         // フォーマット（Normal）
         if (!range.isEmpty) {
@@ -40,6 +63,9 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     let formatAllCommand = vscode.commands.registerTextEditorCommand('extension.table.formatAll', (editor, edit) => {
+        // 初期化
+        if (!isInitilized) initialize(vscode.workspace.getConfiguration(configTitle));
+
         var normalNum = 0;
         var simpleNum = 0;
 

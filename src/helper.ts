@@ -6,6 +6,17 @@ import { CellType, CellAlign, DelimiterType, CellInfo, TableInfo } from './table
 var strWidth = require('string-width')
 var trim = require('trim')
 
+// 設定
+export interface Setting {
+    markdown: {
+        oneSpacePadding: boolean
+        // borderless: boolean
+    },
+    common: {
+        // explicitTwoByteChars: string[]
+    }
+};
+
 // Table format type
 export enum TableFormatType {
     // separate with pipe table
@@ -31,8 +42,11 @@ enum SeparatorType {
 };
 
 export class TableHelper {
+    private settings: Setting;
 
-    constructor() {
+    constructor(config: Setting) {
+        // オブジェクトは参照渡し
+        this.settings = config;
     }
 
     dispose() {
@@ -324,12 +338,21 @@ export class TableHelper {
         });
 
         // Markdownのセパレータのサイズを設定
+        // 左右のスペーサー分がフォーマット時に加算されるため-2する
+        let offset = (this.settings.markdown.oneSpacePadding) ? 0 : -2;
         grid.forEach(row => {
             row.forEach(cell => {
-                if (cell.type == CellType.CM_MinusSeparator || cell.type == CellType.CM_EquallSeparator ||
-                    cell.type == CellType.MD_LeftSeparator || cell.type == CellType.MD_RightSeparator || cell.type == CellType.MD_CenterSeparator) {
-                    // 最小である3文字にする
-                    cell.setSize(3);
+                if (cell.type == CellType.CM_MinusSeparator || cell.type == CellType.CM_EquallSeparator) {
+                    // 最小である3文字にする（---）
+                    cell.setSize(3 + offset);
+                }
+                else if (cell.type == CellType.MD_LeftSeparator || cell.type == CellType.MD_RightSeparator) {
+                    // 最小である4文字にする（:---, ---:）
+                    cell.setSize(4 + offset);
+                }
+                else if (cell.type == CellType.MD_CenterSeparator) {
+                    // 最小である5文字にする（:---:）
+                    cell.setSize(5 + offset);
                 }
             });
         });
