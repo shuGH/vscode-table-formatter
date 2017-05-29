@@ -5,7 +5,7 @@ import * as path from 'path';
 import * as Extension from '../src/extension';
 
 import { TableInfo } from '../src/table';
-import { TableHelper, TableFormatType, TableLineFlag } from '../src/helper';
+import { Setting, TableHelper, TableFormatType, TableLineFlag } from '../src/helper';
 import { TableFormatter } from '../src/formatter';
 import { TableEditor } from '../src/editor';
 
@@ -26,8 +26,18 @@ class TestSetting {
 }
 
 suite("Extension Tests", () => {
-    var tableHelper = new TableHelper();
-    var tableFormatter = new TableFormatter();
+    let settings: Setting = {
+        markdown: {
+            oneSpacePadding: true
+            // borderless: true
+        },
+        common: {
+            // explicitDoubleByteChars: []
+        }
+    }
+
+    var tableHelper = new TableHelper(settings);
+    var tableFormatter = new TableFormatter(settings);
     var tableEditor = new TableEditor();
     var testSettings = [
         new TestSetting("Plain Formatting", "input.txt", "correct.txt",
@@ -36,21 +46,21 @@ suite("Extension Tests", () => {
             new vscode.Position(4, 10),
             new vscode.Position(5, 40)
         ]),
-        new TestSetting("Markdown Formatting", "input.txt", "correct.txt", 
+        new TestSetting("Markdown Formatting", "input.txt", "correct.txt",
             { start: 10, size : 4 }, [
             new vscode.Position(10, 8),
             new vscode.Position(11, 8),
             new vscode.Position(12, 8),
             new vscode.Position(13, 8)
         ]),
-        new TestSetting("Textile Formatting", "input.txt", "correct.txt", 
+        new TestSetting("Textile Formatting", "input.txt", "correct.txt",
             { start: 17, size : 4 }, [
             new vscode.Position(17, 6),
             new vscode.Position(18, 3),
             new vscode.Position(19, 9),
             new vscode.Position(20, 0)
         ]),
-        new TestSetting("Grid Formatting", "input.txt", "correct.txt", 
+        new TestSetting("Grid Formatting", "input.txt", "correct.txt",
             { start: 24, size : 7 }, [
             new vscode.Position(24, 0),
             new vscode.Position(25, 0),
@@ -60,7 +70,7 @@ suite("Extension Tests", () => {
             new vscode.Position(29, 1),
             new vscode.Position(30, 1)
         ]),
-        new TestSetting("Simple Formatting", "input.txt", "correct.txt", 
+        new TestSetting("Simple Formatting", "input.txt", "correct.txt",
             { start: 34, size : 8 }, [
             new vscode.Position(34, 0),
             new vscode.Position(35, 12),
@@ -71,7 +81,7 @@ suite("Extension Tests", () => {
             new vscode.Position(40, 22),
             new vscode.Position(41, 1)
         ]),
-        new TestSetting("Complex Formatting", "input.txt", "correct.txt", 
+        new TestSetting("Complex Formatting", "input.txt", "correct.txt",
             { start: 45, size : 5 }, [
             new vscode.Position(45, 10),
             new vscode.Position(46, 1),
@@ -106,7 +116,7 @@ suite("Extension Tests", () => {
                         assert.equal( info.range.start.line, setting.correctRange.start);
                         assert.equal( info.range.end.line, setting.correctRange.start + setting.correctRange.size - 1);
                         console.log("================")
-                        
+
                         var formatted = tableFormatter.getFormatTableText(inputDoc, info, TableFormatType.Normal);
                         var endPos = new vscode.Position(info.range.end.line, correctDoc.lineAt(info.range.end.line).range.end.character);
                         console.log(formatted);

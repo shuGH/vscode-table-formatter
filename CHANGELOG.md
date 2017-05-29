@@ -3,6 +3,19 @@
 ## [Unreleased]
 
 * Support CSV
+* Issue#7
+* Issue#9
+
+## [1.1.1] - 2017-05-29
+
+### Added
+
+* Add configuration item.
+    * Header separator in markdown has one space padding at both ends or not.
+
+### Fixed
+
+* Issue#6: Support no space header separator in markdown.
 
 ## [1.0.3] - 2017-03-19
 
