@@ -177,7 +177,7 @@ Search extension in marketplace and Install.
 	* [ ] Insert blank col and blank row
 	* [ ] Insert escaped pipe and break
 	* [ ] Convert to plain text table from CSV
-* [ ] Configuration
+* [x] Configuration
     * [ ] Switching Enable Text algin
     * [ ] Escaped pipe string
     * [ ] Escaped break string

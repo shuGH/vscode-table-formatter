@@ -2,7 +2,7 @@
     "name": "vscode-table-formatter",
     "displayName": "Table Formatter",
     "description": "Format table syntax of Markdown, Textile and reStructuredText.",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "publisher": "shuworks",
     "author": "Shuzo Iwasaki <shu.works.7@gmail.com>",
     "engines": {
@@ -41,7 +41,18 @@
                 "command": "extension.table.formatAll",
                 "title": "Table: Format All"
             }
-        ]
+        ],
+        "configuration": {
+            "type": "object",
+            "title": "Table Formatter Configuration",
+            "properties": {
+                "tableformatter.markdown.oneSpacePadding": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Header separator in markdown has one space padding at both ends or not. 'true':'| --- |', 'false':'|-----|'"
+                }
+            }
+        }
     },
     "activationEvents": [
         "onCommand:extension.table.formatCurrent",
@@ -65,16 +76,5 @@
         "@types/node": "^6.0.40",
         "@types/mocha": "^2.2.32"
     },
-    "extensionDependencies": [],
-    "configuration": {
-        "type": "object",
-        "title": "Table Formatter Configuration",
-        "properties": {
-            "tableformatter.markdown.oneSpacePadding": {
-                "type": "boolean",
-                "default": true,
-                "description": "Header separator in markdown has one space padding at both ends or not. 'true':'| --- |', 'false':'|-----|'" 
-            }
-        }
-    }
+    "extensionDependencies": []
 }
