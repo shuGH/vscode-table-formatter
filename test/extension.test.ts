@@ -32,12 +32,12 @@ suite("Extension Tests", () => {
             // borderless: true
         },
         common: {
-            // explicitDoubleByteChars: []
+            explicitFullwidthChars: []
         }
     }
 
     var tableHelper = new TableHelper(settings);
-    var tableFormatter = new TableFormatter(settings);
+    var tableFormatter = new TableFormatter(settings, tableHelper);
     var tableEditor = new TableEditor();
     var testSettings = [
         new TestSetting("Plain Formatting", "input.txt", "correct.txt",

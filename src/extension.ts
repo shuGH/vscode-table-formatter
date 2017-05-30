@@ -15,15 +15,23 @@ export function activate(context: vscode.ExtensionContext) {
             oneSpacePadding: true
         },
         common: {
+            explicitFullwidthChars: []
         }
     }
 
-    let tableFormatter = new TableFormatter(settings);
-    let tableEditor = new TableEditor();
     let tableHelper = new TableHelper(settings);
+    let tableFormatter = new TableFormatter(settings, tableHelper);
+    let tableEditor = new TableEditor();
 
     function initialize(config: vscode.WorkspaceConfiguration) {
         settings.markdown.oneSpacePadding = config.get('markdown.oneSpacePadding', true);
+        let chars = config.get('common.explicitFullwidthChars', []).filter(function (elem, i, self) {
+            return ((self.indexOf(elem) === i ) && (elem.length == 1));
+        });
+        settings.common.explicitFullwidthChars = []
+        chars.forEach((char, i) => {
+            settings.common.explicitFullwidthChars.push(new RegExp(char, 'g'));
+        });
         isInitilized = true;
     }
 

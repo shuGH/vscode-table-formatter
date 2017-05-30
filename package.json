@@ -2,7 +2,7 @@
     "name": "vscode-table-formatter",
     "displayName": "Table Formatter",
     "description": "Format table syntax of Markdown, Textile and reStructuredText.",
-    "version": "1.1.1",
+    "version": "1.1.2",
     "publisher": "shuworks",
     "author": "Shuzo Iwasaki <shu.works.7@gmail.com>",
     "engines": {
@@ -50,6 +50,18 @@
                     "type": "boolean",
                     "default": true,
                     "description": "Header separator in markdown has one space padding at both ends or not. 'true':'| --- |', 'false':'|-----|'"
+                },
+                "tableformatter.common.explicitFullwidthChars": {
+                    "type": "array",
+                    "default": [],
+                    "description": "Characters processed as fullwidth forcibly.",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            }
+                        ]
+                    }
                 }
             }
         }
