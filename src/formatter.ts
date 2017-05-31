@@ -10,10 +10,12 @@ var trim = require('trim')
 
 export class TableFormatter {
     private settings: Setting;
+    private tableHelper: TableHelper;
 
-    constructor(config: Setting) {
+    constructor(config: Setting, helper: TableHelper) {
         // オブジェクトは参照渡し
         this.settings = config;
+        this.tableHelper = helper;
     }
 
     dispose() {
@@ -23,15 +25,13 @@ export class TableFormatter {
     public getFormatTableText(doc: vscode.TextDocument, info: TableInfo, formatType: TableFormatType, option?: any): string {
         if (!info.isValid()) return "";
 
-        var tableHelper = new TableHelper(this.settings);
-
         var formatted = "";
         var maxList = info.getMaxCellSizeList();
         info.cellGrid.forEach((row, i) => {
             var line = i + info.range.start.line;
 
             formatted += this.getFormattedLineText(
-                tableHelper.getSplitLineText(doc.lineAt(line).text, formatType).cells,
+                this.tableHelper.getSplitLineText(doc.lineAt(line).text, formatType).cells,
                 row, maxList, formatType
             );
 
@@ -49,7 +49,8 @@ export class TableFormatter {
             var cellInfo = cellInfoList[i];
 
             var trimed = (i < cells.length) ? trim(cells[i]) : "";
-            var sub = strWidth(trimed) - trimed.length;
+            // @TODO: ここでまたサイズ数えてる、paddingが普通に文字数を数えるためだと思われるので、保持するようにする
+            var sub = this.tableHelper.getStringLength(trimed) - trimed.length;
             var size = (sub == 0) ? elem : elem - sub;
             let hasOneSpace: boolean = true;
 

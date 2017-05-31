@@ -13,7 +13,7 @@ export interface Setting {
         // borderless: boolean
     },
     common: {
-        // explicitTwoByteChars: string[]
+        explicitFullwidthChars: RegExp[]
     }
 };
 
@@ -185,6 +185,21 @@ export class TableHelper {
         return { cells: cells, delimiter: delimiter };
     }
 
+    // 文字数の取得
+    public getStringLength(str: string): number {
+        if (this.settings.common.explicitFullwidthChars.length == 0) {
+            return strWidth(str);
+        }
+
+        // 強制的に全角判定の文字が含まれていたら個数分加算する
+        let cnt = strWidth(str);
+        this.settings.common.explicitFullwidthChars.forEach((reg, i) => {
+            cnt += (str.match(reg) || []).length;
+        });
+
+        return cnt;
+    }
+
     // 行の解析
     public getCellInfoList(line: vscode.TextLine, formatType: TableFormatType): Array<CellInfo> {
         if (line.isEmptyOrWhitespace) return [];
@@ -204,7 +219,7 @@ export class TableHelper {
             // 先頭は空白で追加済みなので無視する
             if (i == 0) continue;
 
-            var size = strWidth(trimed);
+            var size = this.getStringLength(trimed);
             var type = (size == 0) ? CellType.CM_Blank : CellType.CM_Content;
             var align = CellAlign.Left;
 
@@ -236,22 +251,22 @@ export class TableHelper {
                         }
                         // Textile ----------------
                         else if (/^_\./.test(trimed)) {
-                            size = strWidth(trim(trimed.substring(2)));
+                            size = this.getStringLength(trim(trimed.substring(2)));
                             type = CellType.TT_HeaderPrefix;
                             align = CellAlign.Left;
                         }
                         else if (/^<\./.test(trimed)) {
-                            size = strWidth(trim(trimed.substring(2)));
+                            size = this.getStringLength(trim(trimed.substring(2)));
                             type = CellType.TT_LeftPrefix;
                             align = CellAlign.Left;
                         }
                         else if (/^>\./.test(trimed)) {
-                            size = strWidth(trim(trimed.substring(2)));
+                            size = this.getStringLength(trim(trimed.substring(2)));
                             type = CellType.TT_RightPrefix;
                             align = CellAlign.Right;
                         }
                         else if (/^=\./.test(trimed)) {
-                            size = strWidth(trim(trimed.substring(2)));
+                            size = this.getStringLength(trim(trimed.substring(2)));
                             type = CellType.TT_CenterPrefix;
                             align = CellAlign.Center;
                         }

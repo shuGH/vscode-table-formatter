@@ -4,7 +4,17 @@
 
 * Support CSV
 * Issue#7
-* Issue#9
+
+## [1.1.2] - 2017-05-31
+
+### Added
+
+* Add configuration item.
+    * Characters processed as fullwidth forcibly.
+
+### Fixed
+
+* Issue#9: Specified characters are forced to be handled as a fullwidth.
 
 ## [1.1.1] - 2017-05-29
 
