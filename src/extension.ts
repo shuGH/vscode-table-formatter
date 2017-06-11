@@ -1,7 +1,7 @@
 'use strict';
 
 import * as vscode from 'vscode';
-import { TableInfo } from './table';
+import { TableInfo, TableEdgesType } from './table';
 import { Setting, TableHelper, TableFormatType, TableLineFlag } from './helper';
 import { TableFormatter } from './formatter';
 import { TableEditor } from './editor';
@@ -12,11 +12,13 @@ export function activate(context: vscode.ExtensionContext) {
     let configTitle = "tableformatter";
     let settings: Setting = {
         markdown: {
-            oneSpacePadding: true
+            oneSpacePadding: true,
+            tableEdgesType: TableEdgesType.Auto
         },
         common: {
             explicitFullwidthChars: [],
-            trimTrailingWhitespace: true
+            trimTrailingWhitespace: true,
+            centerAlignedHeader: true
         }
     }
 
@@ -27,14 +29,20 @@ export function activate(context: vscode.ExtensionContext) {
     // 設定の読み込み
     function initialize(config: vscode.WorkspaceConfiguration) {
         settings.markdown.oneSpacePadding = config.get('markdown.oneSpacePadding', true);
+        settings.markdown.tableEdgesType = TableEdgesType[config.get('markdown.tableEdgesType', "Auto")];
+
+        settings.common.trimTrailingWhitespace = config.get('common.trimTrailingWhitespace', true);
+        settings.common.centerAlignedHeader = config.get('common.centerAlignedHeader', false);
+        settings.common.explicitFullwidthChars = []
         let chars = config.get('common.explicitFullwidthChars', []).filter(function (elem, i, self) {
             return ((self.indexOf(elem) === i ) && (elem.length == 1));
         });
-        settings.common.explicitFullwidthChars = []
         chars.forEach((char, i) => {
             settings.common.explicitFullwidthChars.push(new RegExp(char, 'g'));
         });
-        settings.common.trimTrailingWhitespace = config.get('common.trimTrailingWhitespace', true);
+
+        // console.log("Setting:", settings);
+
         isInitilized = true;
     }
 

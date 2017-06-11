@@ -30,6 +30,7 @@ export enum CellAlign {
 
 // Delimiter type
 export enum DelimiterType {
+    None,
     Pipe,
     Plus,
     Space,
@@ -37,16 +38,37 @@ export enum DelimiterType {
 };
 
 // Separator type
-enum SeparatorType {
+export enum SeparatorType {
     None,
     Minus,
     Equall
 };
 
+// Markdown table edges type
+export enum TableEdgesType {
+    Auto,
+    Normal,
+    Borderless
+};
+
+// Row info
+export interface RowInfo {
+    separatorType: SeparatorType,
+    delimiterTYpe: DelimiterType
+};
+
 // Table property
 export interface TableProperty {
     // マークダウンか（セパレーター行の前に１行しかないとき）
-    isMarkdown: false,
+    isMarkdown: boolean,
+    // 行頭がデリミタの行があるか
+    hasDelimiterAtLineHead: boolean,
+    // Markdownテーブルのヘッダー行
+    markdownTableHeaderIndexes: Set<number>,
+    // Gridテーブルのヘッダー行
+    gridTableHeaderIndexes: Set<number>,
+    // Simpleテーブルのヘッダー行
+    simpleTableHeaderIndexes: Set<number>
 };
 
 // Cell info
@@ -72,7 +94,7 @@ export class CellInfo {
         this._string = trimmed;
         this._size = this.getStringLength(this._string);
         this._diff = this._size - trimmed.length;
-        
+
         this._delimiter = delimiter;
         this._type = type;
         this._align = align;
@@ -115,7 +137,7 @@ export class CellInfo {
     setString(trimmed: string) {
         this._string = trimmed;
     }
-    
+
     setSize(size: number) {
         this._size = size;
     }
@@ -146,7 +168,7 @@ export class CellInfo {
             return strWidth(str);
         }
 
-        // 強制的に全角判定の文字が含まれていたら個数分加算する
+        // コンフィグ：強制的に全角判定の文字が含まれていたら個数分加算する
         let cnt = strWidth(str);
         this._settings.common.explicitFullwidthChars.forEach((reg, i) => {
             cnt += (str.match(reg) || []).length;
@@ -164,13 +186,20 @@ export class TableInfo {
     private _range: vscode.Range;
     // セルデータの２次元配列（左端の表が始まるまでの空白も列として含む）
     private _cellGrid: Array<Array<CellInfo>>;
+    // 行の情報（setup時に作る）
+    private _rowInfos: Array<RowInfo>;
     // 表のサイズ（空白列も含む）
     private _size: { row: number, col: number };
 
-    constructor(settings: Setting, range: vscode.Range, grid: Array<Array<CellInfo>>) {
+    constructor(settings: Setting, range: vscode.Range, grid: Array < Array < CellInfo >>, info: {hasDelimiterAtLineHead: boolean}) {
         this._settings = settings;
+        this._rowInfos = [];
         this._property = {
-            isMarkdown: false
+            isMarkdown: false,
+            hasDelimiterAtLineHead: false,
+            markdownTableHeaderIndexes: new Set<number>(),
+            gridTableHeaderIndexes: new Set<number>(),
+            simpleTableHeaderIndexes: new Set<number>()
         }
 
         this._range = range;
@@ -179,12 +208,13 @@ export class TableInfo {
 
         this.setupCellGrid(grid);
         this.setupSize();
+        this.setupProperty(info);
     }
 
     get property(): TableProperty {
         return this._property;
     }
-    
+
     get range(): vscode.Range {
         return this._range;
     }
@@ -211,18 +241,21 @@ export class TableInfo {
         this._cellGrid.forEach(row => {
             max = Math.max(max, row.length);
         });
-        this._cellGrid.forEach(row => {
+        this._cellGrid.forEach((row, index) => {
             // デリミタも揃える
             var delimiter = (row.length > 0) ? row[0].delimiter : DelimiterType.Pipe;
             for (var c = row.length; c < max; c++) {
                 row.push(new CellInfo(this._settings, "", delimiter));
             }
+
+            // 保持
+            if (this._rowInfos.length > index) this._rowInfos[index].delimiterTYpe = delimiter;
         });
     }
 
     // セパレータタイプの確定
     private setupSeparatorType() {
-        this._cellGrid.forEach(row => {
+        this._cellGrid.forEach((row, index) => {
             // セパレータ行かの判定
             var rowType = SeparatorType.None;
             for (var i = 0; i < row.length; i++) {
@@ -273,13 +306,16 @@ export class TableInfo {
                     }
                 }
             });
+
+            // 保持
+            if (this._rowInfos.length > index) this._rowInfos[index].separatorType = rowType;
         });
     }
 
     // 全セルのサイズを確定
     private setupCellSize() {
         // Markdownのセパレータのサイズを設定
-        // 左右のスペーサー分がフォーマット時に加算されるため-2する
+        // コンフィグ：左右のスペーサー分がフォーマット時に加算されるため-2する
         let offset = (this._settings.markdown.oneSpacePadding) ? 0 : -2;
         this._cellGrid.forEach(row => {
             row.forEach(cell => {
@@ -365,9 +401,106 @@ export class TableInfo {
         });
     }
 
+    // セルの内容からプロパティの更新
+    private setupProperty(info: { hasDelimiterAtLineHead: boolean }) {
+        this._property.isMarkdown = this.isMarkdownTable(this._cellGrid, this._rowInfos);
+        this._property.hasDelimiterAtLineHead = info.hasDelimiterAtLineHead;
+        this.getMarkdownTableHeaderIndexes(this._property.markdownTableHeaderIndexes, this._cellGrid, this._rowInfos);
+        this.getGridTableHeaderIndexes(this._property.gridTableHeaderIndexes, this._cellGrid, this._rowInfos);
+        this.getSimpleTableHeaderIndexes(this._property.simpleTableHeaderIndexes, this._cellGrid, this._rowInfos);
+    }
+
+    // Markdownかどうか
+    private isMarkdownTable(grid: Array<Array<CellInfo>>, rowInfos: Array<RowInfo>): boolean {
+        if (grid.length <3 || rowInfos.length < 3) return false;
+        // 非セパレート行、セパレート行、非セパレート行の順になっているか
+        if (rowInfos[0].separatorType != SeparatorType.None || rowInfos[0].delimiterTYpe != DelimiterType.Pipe) return false;
+        if (rowInfos[1].separatorType != SeparatorType.Minus || rowInfos[1].delimiterTYpe != DelimiterType.Pipe) return false;
+        if (rowInfos[2].separatorType != SeparatorType.None || rowInfos[2].delimiterTYpe != DelimiterType.Pipe) return false;
+        return true;
+    }
+
+    // Markdownテーブルのヘッダー行取得
+    private getMarkdownTableHeaderIndexes(outIndexes: Set<number>, grid: Array<Array<CellInfo>>, rowInfos: Array<RowInfo>) {
+        outIndexes.clear();
+
+        // １行目以降でセパレータ行までのコンテンツ行をヘッダーとして判定
+        for (var i = 0; i < rowInfos.length; i++) {
+            var elem = rowInfos[i];
+
+            if (elem.separatorType == SeparatorType.None) {
+                // もし最終行ならすべて破棄して終了
+                if (i == rowInfos.length - 1) {
+                    outIndexes.clear();
+                    break;
+                }
+                outIndexes.add(i);
+            }
+            else {
+                break;
+            }
+        }
+    }
+
+    // Gridテーブルのヘッダー行取得
+    private getGridTableHeaderIndexes(outIndexes: Set<number>, grid: Array<Array<CellInfo>>, rowInfos: Array<RowInfo>) {
+        outIndexes.clear();
+
+        // １行目がMinusセパレータでなければ無視
+        if (rowInfos[0].separatorType != SeparatorType.Minus) return;
+        // ２行目以降でEquallセパレータ行までのコンテンツ行をヘッダーとして判定
+        for (var i = 1; i < rowInfos.length; i++) {
+            var elem = rowInfos[i];
+            if (elem.separatorType == SeparatorType.None) {
+                outIndexes.add(i);
+            }
+            else if (elem.separatorType == SeparatorType.Equall) {
+                break;
+            }
+            else if (elem.separatorType == SeparatorType.Minus) {
+                // すべて破棄して終了
+                outIndexes.clear();
+                break;
+            }
+        }
+    }
+
+    // Simpleテーブルのヘッダー行取得
+    private getSimpleTableHeaderIndexes(outIndexes: Set<number>, grid: Array<Array<CellInfo>>, rowInfos: Array<RowInfo>) {
+        outIndexes.clear();
+
+        // １行目がEquallセパレータでなければ無視
+        if (rowInfos[0].separatorType != SeparatorType.Equall) return;
+        // ２行目以降でEquallセパレータ行までのコンテンツ行をヘッダーとして判定
+        for (var i = 1; i < rowInfos.length; i++) {
+            var elem = rowInfos[i];
+            if (elem.separatorType == SeparatorType.None) {
+                outIndexes.add(i);
+            }
+            else if (elem.separatorType == SeparatorType.Equall) {
+                // もし最終行ならすべて破棄して終了
+                if (i == rowInfos.length - 1) {
+                    outIndexes.clear();
+                    break;
+                }
+                break;
+            }
+            else if (elem.separatorType == SeparatorType.Minus) {
+                continue;
+            }
+        }
+    }
+
     // 表データを正規化して設定
     private setupCellGrid(grid: Array<Array<CellInfo>>) {
         this._cellGrid = grid;
+        this._rowInfos = [];
+        for (var i = 0; i < this._cellGrid.length; i++) {
+            this._rowInfos.push({
+                separatorType: SeparatorType.None,
+                delimiterTYpe: DelimiterType.None
+            });
+        }
 
         this.setupRowSize();
         this.setupSeparatorType();
