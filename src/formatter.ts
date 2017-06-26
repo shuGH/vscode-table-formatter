@@ -22,162 +22,156 @@ export class TableFormatter {
     }
 
     // フォーマット済みの文字列を返す
-    public getFormatTableText(doc: vscode.TextDocument, info: TableInfo, formatType: TableFormatType, option?: any): string {
+    public getFormattedTableText(doc: vscode.TextDocument, info: TableInfo, formatType: TableFormatType, option?: any): string {
         if (!info.isValid()) return "";
 
         var formatted = "";
         var maxList = info.getMaxCellSizeList();
         info.cellGrid.forEach((row, i) => {
             var line = i + info.range.start.line;
-
-            formatted += this.getFormattedLineText(
-                this.tableHelper.getSplitLineText(doc.lineAt(line).text, formatType).cells,
-                row, maxList, formatType
-            );
-
+            formatted += this.getFormattedLineText(row, maxList, formatType);
             if (line != info.range.end.line) formatted += '\n';
         });
         return formatted;
     }
 
     // 行のフォーマット済みの文字列を返す
-    private getFormattedLineText(cells: Array<string>, cellInfoList: Array<CellInfo>, maxlist: Array<number>, formatType: TableFormatType, option?: any): string {
+    private getFormattedLineText(cellInfoList: Array<CellInfo>, maxlist: Array<number>, formatType: TableFormatType, option?: any): string {
         if (cellInfoList && maxlist && cellInfoList.length != maxlist.length) return "";
 
         var formatted = "";
         maxlist.forEach((elem, i) => {
             var cellInfo = cellInfoList[i];
 
-            var trimed = (i < cells.length) ? trim(cells[i]) : "";
-            // @TODO: ここでまたサイズ数えてる、paddingが普通に文字数を数えるためだと思われるので、保持するようにする
-            var sub = this.tableHelper.getStringLength(trimed) - trimed.length;
-            var size = (sub == 0) ? elem : elem - sub;
-            let hasOneSpace: boolean = true;
-
+            // utilPad()がlength基準で処理されるので、差分から長さを修正
+            var formattedSize = elem - cellInfo.diff;
+            let hasOneSpace = true;
+            
             switch (cellInfo.type) {
                 // Common ----------------
                 case CellType.CM_MinusSeparator:
-                    size += cellInfo.padding;
+                    formattedSize += cellInfo.padding;
 
                     // 左右に空白を設けるか
                     if (this.settings.markdown.oneSpacePadding) {
-                        size += (cellInfo.delimiter == DelimiterType.Plus) ? 2 : 0;
+                        formattedSize += (cellInfo.delimiter == DelimiterType.Plus) ? 2 : 0;
                         hasOneSpace = true;
                     }
                     else {
-                        size += (cellInfo.delimiter == DelimiterType.Plus || cellInfo.delimiter == DelimiterType.Pipe) ? 2 : 0;
+                        formattedSize += (cellInfo.delimiter == DelimiterType.Plus || cellInfo.delimiter == DelimiterType.Pipe) ? 2 : 0;
                         hasOneSpace = false;
                     }
-
-                    formatted += this.getPaddingText(i, size, 0, cellInfo.delimiter, hasOneSpace);
-                    formatted += this.getAlignedText("", size, "-", CellAlign.Center);
+                    formatted += this.getPaddingText(i, formattedSize, 0, cellInfo.delimiter, hasOneSpace);
+                    formatted += this.getAlignedText("", formattedSize, "-", CellAlign.Center);
                     formatted += this.getDelimiterText(i, cellInfoList.length, cellInfo.delimiter, hasOneSpace);
                     break;
 
                 case CellType.CM_EquallSeparator:
-                    size += cellInfo.padding;
+                    formattedSize += cellInfo.padding;
 
                     // 左右に空白を設けるか
                     if (this.settings.markdown.oneSpacePadding) {
-                        size += (cellInfo.delimiter == DelimiterType.Plus) ? 2 : 0;
+                        formattedSize += (cellInfo.delimiter == DelimiterType.Plus) ? 2 : 0;
                         hasOneSpace = true;
                     }
                     else {
-                        size += (cellInfo.delimiter == DelimiterType.Plus || cellInfo.delimiter == DelimiterType.Pipe) ? 2 : 0;
+                        formattedSize += (cellInfo.delimiter == DelimiterType.Plus || cellInfo.delimiter == DelimiterType.Pipe) ? 2 : 0;
                         hasOneSpace = false;
                     }
 
-                    formatted += this.getPaddingText(i, size, 0, cellInfo.delimiter, hasOneSpace);
-                    formatted += this.getAlignedText("", size, "=", CellAlign.Center);
+                    formatted += this.getPaddingText(i, formattedSize, 0, cellInfo.delimiter, hasOneSpace);
+                    formatted += this.getAlignedText("", formattedSize, "=", CellAlign.Center);
                     formatted += this.getDelimiterText(i, cellInfoList.length, cellInfo.delimiter, hasOneSpace);
                     break;
 
                 // Markdown ----------------
                 case CellType.MD_LeftSeparator:
-                    size += cellInfo.padding;
+                    formattedSize += cellInfo.padding;
 
                     // 左右に空白を設けるか
                     if (this.settings.markdown.oneSpacePadding) {
                         hasOneSpace = true;
                     }
                     else {
-                        size += 2;
+                        formattedSize += 2;
                         hasOneSpace = false;
                     }
 
-                    formatted += this.getPaddingText(i, size, 0, cellInfo.delimiter, hasOneSpace);
-                    formatted += this.getAlignedText(":---", size, "-", CellAlign.Left);
+                    formatted += this.getPaddingText(i, formattedSize, 0, cellInfo.delimiter, hasOneSpace);
+                    formatted += this.getAlignedText(":---", formattedSize, "-", CellAlign.Left);
                     formatted += this.getDelimiterText(i, cellInfoList.length, cellInfo.delimiter, hasOneSpace);
                     break;
 
                 case CellType.MD_RightSeparator:
-                    size += cellInfo.padding;
+                    formattedSize += cellInfo.padding;
 
                     // 左右に空白を設けるか
                     if (this.settings.markdown.oneSpacePadding) {
                         hasOneSpace = true;
                     }
                     else {
-                        size += 2;
+                        formattedSize += 2;
                         hasOneSpace = false;
                     }
 
-                    formatted += this.getPaddingText(i, size, 0, cellInfo.delimiter, hasOneSpace);
-                    formatted += this.getAlignedText("---:", size, "-", CellAlign.Right);
+                    formatted += this.getPaddingText(i, formattedSize, 0, cellInfo.delimiter, hasOneSpace);
+                    formatted += this.getAlignedText("---:", formattedSize, "-", CellAlign.Right);
                     formatted += this.getDelimiterText(i, cellInfoList.length, cellInfo.delimiter, hasOneSpace);
                     break;
 
                 case CellType.MD_CenterSeparator:
-                    size += cellInfo.padding;
+                    formattedSize += cellInfo.padding;
 
                     // 左右に空白を設けるか
                     if (this.settings.markdown.oneSpacePadding) {
                         hasOneSpace = true;
                     }
                     else {
-                        size += 2;
+                        formattedSize += 2;
                         hasOneSpace = false;
                     }
 
-                    formatted += this.getPaddingText(i, size, 0, cellInfo.delimiter, hasOneSpace);
-                    formatted += ":" + this.getAlignedText("", size - 2, "-", CellAlign.Center) + ":";
+                    formatted += this.getPaddingText(i, formattedSize, 0, cellInfo.delimiter, hasOneSpace);
+                    formatted += ":" + this.getAlignedText("", formattedSize - 2, "-", CellAlign.Center) + ":";
                     formatted += this.getDelimiterText(i, cellInfoList.length, cellInfo.delimiter, hasOneSpace);
                     break;
 
                 // Textile ----------------
                 case CellType.TT_HeaderPrefix:
-                    trimed = trim(trimed.substring(2));
-                    formatted += (i == 0) ? "" : (size == 0) ? "_." : "_. ";
-                    formatted += this.getAlignedText(trimed, size, " ", cellInfo.align);
+                    formatted += (i == 0) ? "" : (formattedSize == 0) ? "_." : "_. ";
+                    formatted += this.getAlignedText(cellInfo.string, formattedSize, " ", cellInfo.align);
                     formatted += this.getDelimiterText(i, cellInfoList.length, cellInfo.delimiter);
                     break;
                 case CellType.TT_LeftPrefix:
-                    trimed = trim(trimed.substring(2));
-                    formatted += (i == 0) ? "" : (size == 0) ? "<." : "<. ";
-                    formatted += this.getAlignedText(trimed, size, " ", cellInfo.align);
+                    formatted += (i == 0) ? "" : (formattedSize == 0) ? "<." : "<. ";
+                    formatted += this.getAlignedText(cellInfo.string, formattedSize, " ", cellInfo.align);
                     formatted += this.getDelimiterText(i, cellInfoList.length, cellInfo.delimiter);
                     break;
                 case CellType.TT_RightPrefix:
-                    trimed = trim(trimed.substring(2));
-                    formatted += (i == 0) ? "" : (size == 0) ? ">." : ">. ";
-                    formatted += this.getAlignedText(trimed, size, " ", cellInfo.align);
+                    formatted += (i == 0) ? "" : (formattedSize == 0) ? ">." : ">. ";
+                    formatted += this.getAlignedText(cellInfo.string, formattedSize, " ", cellInfo.align);
                     formatted += this.getDelimiterText(i, cellInfoList.length, cellInfo.delimiter);
                     break;
                 case CellType.TT_CenterPrefix:
-                    trimed = trim(trimed.substring(2));
-                    formatted += (i == 0) ? "" : (size == 0) ? "=." : "=. ";
-                    formatted += this.getAlignedText(trimed, size, " ", cellInfo.align);
+                    formatted += (i == 0) ? "" : (formattedSize == 0) ? "=." : "=. ";
+                    formatted += this.getAlignedText(cellInfo.string, formattedSize, " ", cellInfo.align);
                     formatted += this.getDelimiterText(i, cellInfoList.length, cellInfo.delimiter);
                     break;
 
                 // Etc ----------------
                 default:
-                    formatted += this.getPaddingText(i, size, cellInfo.padding, cellInfo.delimiter);
-                    formatted += this.getAlignedText(trimed, size, " ", cellInfo.align);
+                    formatted += this.getPaddingText(i, formattedSize, cellInfo.padding, cellInfo.delimiter);
+                    formatted += this.getAlignedText(cellInfo.string, formattedSize, " ", cellInfo.align);
                     formatted += this.getDelimiterText(i, cellInfoList.length, cellInfo.delimiter);
                     break;
             }
         })
+
+        // 末尾スペースを削除する
+        if (this.settings.common.trimTrailingWhitespace) {
+            formatted = trim.right(formatted);
+        }
+
         return formatted;
     }
 
@@ -198,6 +192,9 @@ export class TableFormatter {
             case DelimiterType.Space:
                 spacer = "";
                 break;
+            // case DelimiterType.Comma:
+            //     spacer = "";
+            //     break;
         }
         return spacer + utilPad("", padding);
     }
@@ -230,6 +227,8 @@ export class TableFormatter {
             case DelimiterType.Space:
                 // 2スペース推奨
                 return (cell == 0 || cell == rowSize - 1) ? "" : "  ";
+            // case DelimiterType.Comma:
+            //     return (cell == 0 || cell == rowSize - 1) ? "" : ", ";
         }
         return "";
     }

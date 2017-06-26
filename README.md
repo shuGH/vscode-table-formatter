@@ -171,16 +171,14 @@ Search extension in marketplace and Install.
     * [x] Simple table
 * [ ] CSV support
     * [ ] Formatting
-        * Perhaps it will be specific command
-    * [ ] Escaping double quotation
-* [ ] Simple table editing
-	* [ ] Insert blank col and blank row
-	* [ ] Insert escaped pipe and break
-	* [ ] Convert to plain text table from CSV
 * [x] Configuration
     * [ ] Switching Enable Text algin
     * [ ] Escaped pipe string
     * [ ] Escaped break string
+* [ ] Simple table editing
+	* [ ] Insert blank col and blank row
+	* [ ] Insert escaped pipe and break
+	* [ ] Convert to plain text table from CSV
 * [ ] Fast and simple shortcut format in table syntax
     * e.g.) Press Tab key in table syntax, and format current table
     * Probably needs updating of VSCood features about key bindings "when" property.

@@ -4,6 +4,13 @@
 
 * Support CSV
 * Issue#7
+* Issue#12
+
+## [1.2.0] - 2017-06-
+
+### Changed
+
+* Refactor codes.
 
 ## [1.1.2] - 2017-05-31
 
