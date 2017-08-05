@@ -2,7 +2,7 @@
     "name": "vscode-table-formatter",
     "displayName": "Table Formatter",
     "description": "Format table syntax of Markdown, Textile and reStructuredText.",
-    "version": "1.2.0",
+    "version": "1.2.1",
     "publisher": "shuworks",
     "author": "Shuzo Iwasaki <shu.works.7@gmail.com>",
     "engines": {
@@ -42,15 +42,24 @@
                 "title": "Table: Format All"
             }
         ],
+        "keybindings": [
+            {
+                "command": "extension.table.formatCurrent",
+                "key": "ctrl+alt+t c",
+                "mac": "cmd+alt+t c",
+                "when": "editorTextFocus"
+            },
+            {
+                "command": "extension.table.formatAll",
+                "key": "ctrl+alt+t a",
+                "mac": "cmd+alt+t a",
+                "when": "editorTextFocus"
+            }
+        ],
         "configuration": {
             "type": "object",
             "title": "Table Formatter Configuration",
             "properties": {
-                "tableformatter.markdown.oneSpacePadding": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Header separator in markdown has one space padding at both ends or not. 'true':'| --- |', 'false':'|-----|'"
-                },
                 "tableformatter.common.explicitFullwidthChars": {
                     "type": "array",
                     "default": [],
@@ -63,10 +72,30 @@
                         ]
                     }
                 },
-                "tableformatter.markdown.trimTrailingWhitespace": {
+                "tableformatter.common.trimTrailingWhitespace": {
                     "type": "boolean",
                     "default": true,
                     "description": "Remove trailing whitespace or not when formatting table."
+                },
+                "tableformatter.common.centerAlignedHeader": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Force header cell to be center aligned or not."
+                },
+                "tableformatter.markdown.oneSpacePadding": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "[Markdown only] Header separator in markdown has one space padding at both ends or not."
+                },
+                "tableformatter.markdown.tableEdgesType": {
+                    "type": "string",
+                    "default": "Auto",
+                    "description": "[Markdown only] Type of formatted table's delimiters on its both sides. (Auto, Normal or Borderless)",
+                    "enum": [
+                        "Auto",
+                        "Normal",
+                        "Borderless"
+                    ]
                 }
             }
         }

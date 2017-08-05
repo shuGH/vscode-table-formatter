@@ -8,14 +8,14 @@ start
 
 // markdown
 
-| -   |     | update               |    commit     | checkout |
+|  -  |     |        update        |    commit     | checkout |
 | --- | --- | :------------------- | :-----------: | -------: |
 | git |     | pull / fetch > merge | commit / push |    clone |
 | hg  |     | pull > update        | commit / push |    clone |
 
 // textile
 
-|_. name           |_. age |
+|_.      name      |_. age |
 |   John Doe       |>.  35 |
 |   Jane Doe       |<. 19  |
 |   Nanashi Gonbei |=.  6  |
@@ -33,17 +33,17 @@ start
 // simple
 
 =====  =====  ========  =======
-Input  .      Output       
+Input    .     Output
 -----  -----  --------  -------
-A      B      "A or B"  A_and_B
+  A      B    "A or B"  A_and_B
 =====  =====  ========  =======
-False  False  False     False  
-True   False  True      False  
+False  False  False     False
+True   False  True      False
 =====  =====  ========  =======
 
 // complex
 
-|_. 俳句 (Haiku)         |     |                          |                      |
+|_.     俳句 (Haiku)     |     |                          |                      |
 +------------------------+-----+--------------------------+----------------------+
 |   閑さや               |     |       岩にしみ入る       |>.             蝉の声 |
 | :--------------------- | --- | :----------------------: | -------------------- |

@@ -1,7 +1,7 @@
 'use strict';
 
 import * as vscode from 'vscode';
-import { CellType, CellAlign, DelimiterType, CellInfo, TableInfo } from './table';
+import { CellType, CellAlign, DelimiterType, TableEdgesType, CellInfo, TableInfo } from './table';
 
 var strWidth = require('string-width')
 var trim = require('trim')
@@ -9,11 +9,13 @@ var trim = require('trim')
 // 設定
 export interface Setting {
     markdown: {
-        oneSpacePadding: boolean
+        oneSpacePadding: boolean,
+        tableEdgesType: TableEdgesType
     },
     common: {
         explicitFullwidthChars: RegExp[],
-        trimTrailingWhitespace: true
+        trimTrailingWhitespace: boolean,
+        centerAlignedHeader: boolean
     }
 };
 
@@ -215,7 +217,7 @@ export class TableHelper {
     }
 
     // 行の文字列を分割する（必ず先頭が空白で末尾は空白でないようにして返す）
-    public getSplittedLineText(text: string, formatType: TableFormatType): { cells: Array<string>, delimiter: DelimiterType } {
+    public getSplittedLineText(text: string, formatType: TableFormatType): { cells: Array<string>, delimiter: DelimiterType, isAddedBlankHead: boolean } {
         var cells = [];
         var delimiter = DelimiterType.Pipe;
 
@@ -235,10 +237,9 @@ export class TableHelper {
                 }
                 break;
             case TableFormatType.Simple:
-                console.log(text)
                 cells = this.getSplittedTextByRegExp(text, " ");
-                // @TODO: Simpleの動作確認
-                console.log(JSON.stringify(cells));
+                // @TODO: CSV対応したらSimpleの動作確認もする
+                // console.log(JSON.stringify(cells));
                 delimiter = DelimiterType.Space;
                 break;
             // case TableFormatType.Csv:
@@ -248,8 +249,10 @@ export class TableHelper {
         }
 
         // 先頭要素が空白でない場合、空白要素の追加
+        var isAdded = false;
         if (cells.length >= 1 && trim(cells[0]) != "") {
             cells.unshift("");
+            isAdded = true;
         }
 
         // 末尾要素が空白の場合、削除
@@ -257,7 +260,7 @@ export class TableHelper {
             cells.pop();
         }
 
-        return { cells: cells, delimiter: delimiter };
+        return { cells: cells, delimiter: delimiter, isAddedBlankHead: isAdded };
     }
 
     // 正規表現を使って区切った文字列を返す
@@ -271,23 +274,22 @@ export class TableHelper {
     }
 
     // 行の解析
-    public getCellInfoList(line: vscode.TextLine, formatType: TableFormatType): Array<CellInfo> {
-        if (line.isEmptyOrWhitespace) return [];
+    public getCellInfoList(line: vscode.TextLine, formatType: TableFormatType): { list: Array<CellInfo>, isAddedBlankHead: boolean } {
+        if (line.isEmptyOrWhitespace) return { list: [], isAddedBlankHead: false };
 
-        var splitText = this.getSplittedLineText(line.text, formatType);
+        var obj = this.getSplittedLineText(line.text, formatType);
 
         var list: Array<CellInfo> = [];
-        var cells = splitText.cells;
-        var delimiter = splitText.delimiter;
+        var cells = obj.cells;
 
-        // 先頭に空白列を追加
+        // 先頭は必ず空白になっており、もともとのオフセット分数の空白文字のセルを追加
         let spaces = Array(line.firstNonWhitespaceCharacterIndex + 1).join(" ");
-        list.push(new CellInfo(this.settings, spaces, delimiter));
+        list.push(new CellInfo(this.settings, spaces, obj.delimiter));
 
         for (var i = 0; i < cells.length; i++) {
             var trimmed = trim(cells[i]);
 
-            // 先頭は空白で追加済みなので無視する
+            // 先頭の空白は追加済みなので無視する
             if (i == 0) continue;
 
             var type = (trimmed.length == 0) ? CellType.CM_Blank : CellType.CM_Content;
@@ -361,19 +363,27 @@ export class TableHelper {
                 //     break;
             }
 
-            list.push(new CellInfo(this.settings, trimmed, delimiter, type, align));
+            list.push(new CellInfo(this.settings, trimmed, obj.delimiter, type, align));
         }
-        return list;
+
+        return { list: list, isAddedBlankHead: obj.isAddedBlankHead };
     }
 
     // 表データの取得
     public getTableInfo(doc: vscode.TextDocument, range: vscode.Range, formatType: TableFormatType): TableInfo {
         // 各行の解析
         var grid: Array<Array<CellInfo>> = [];
-        for (var i = range.start.line; i <= range.end.line; i++) {
-            grid.push(this.getCellInfoList(doc.lineAt(i), formatType));
+        var info = {
+            // 行頭にデリミタがあったか
+            hasDelimiterAtLineHead: false
         }
-        return new TableInfo(this.settings, range, grid);
+        for (var i = range.start.line; i <= range.end.line; i++) {
+            var obj = this.getCellInfoList(doc.lineAt(i), formatType);
+            grid.push(obj.list);
+            // 一行でも先頭に空白を追加していなかったら、行頭デリミタがあったと判定
+            if (!obj.isAddedBlankHead) info.hasDelimiterAtLineHead = true;
+        }
+        return new TableInfo(this.settings, range, grid, info);
     }
 
     // フォーマット済み範囲を走査しフォーマット対象の範囲を決める
