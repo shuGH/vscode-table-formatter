@@ -5,6 +5,17 @@
 * Support CSV
 * Issue#14: Formatting when saved.
 
+## [1.2.2] - 2017-10-01
+
+### Added
+
+* Add configuration item.
+    * Force align of numeric cell to right. (Issue#17)
+
+### Removed
+
+* Remove roadmap item.
+
 ## [1.2.1] - 2017-08-05
 
 ### Added

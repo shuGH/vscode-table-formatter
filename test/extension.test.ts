@@ -34,7 +34,8 @@ suite("Extension Tests", () => {
         common: {
             explicitFullwidthChars: [],
             trimTrailingWhitespace: true,
-            centerAlignedHeader: true
+            centerAlignedHeader: true,
+            rightAlignedNumeric: true
         }
     }
 

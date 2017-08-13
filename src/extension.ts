@@ -18,9 +18,10 @@ export function activate(context: vscode.ExtensionContext) {
         common: {
             explicitFullwidthChars: [],
             trimTrailingWhitespace: true,
-            centerAlignedHeader: true
+            centerAlignedHeader: true,
+            rightAlignedNumeric: false
         }
-    }
+    };
 
     let tableHelper = new TableHelper(settings);
     let tableFormatter = new TableFormatter(settings, tableHelper);
@@ -33,6 +34,7 @@ export function activate(context: vscode.ExtensionContext) {
 
         settings.common.trimTrailingWhitespace = config.get('common.trimTrailingWhitespace', true);
         settings.common.centerAlignedHeader = config.get('common.centerAlignedHeader', false);
+        settings.common.rightAlignedNumeric = config.get('common.rightAlignedNumeric', true);
         settings.common.explicitFullwidthChars = []
         let chars = config.get('common.explicitFullwidthChars', []).filter(function (elem, i, self) {
             return ((self.indexOf(elem) === i ) && (elem.length == 1));

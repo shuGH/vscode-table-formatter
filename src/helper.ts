@@ -15,7 +15,8 @@ export interface Setting {
     common: {
         explicitFullwidthChars: RegExp[],
         trimTrailingWhitespace: boolean,
-        centerAlignedHeader: boolean
+        centerAlignedHeader: boolean,
+        rightAlignedNumeric: boolean
     }
 };
 
@@ -293,18 +294,18 @@ export class TableHelper {
             if (i == 0) continue;
 
             var type = (trimmed.length == 0) ? CellType.CM_Blank : CellType.CM_Content;
-            var align = CellAlign.Left;
+            var align = CellAlign.None;
 
             switch (formatType) {
                 case TableFormatType.Normal:
                     // Common  ----------------
                     if (this.commonMinusRegExp.test(trimmed)) {
                         type = CellType.CM_MinusSeparator;
-                        align = CellAlign.Left;
+                        align = CellAlign.None;
                     }
                     else if (this.commonEqualRegExp.test(trimmed)) {
                         type = CellType.CM_EquallSeparator;
-                        align = CellAlign.Left;
+                        align = CellAlign.None;
                     }
                     // Markdown ----------------
                     else if (this.markdownLeftRegExp.test(trimmed)) {
@@ -324,7 +325,7 @@ export class TableHelper {
                         // ._を削除
                         trimmed = trim(trimmed.substring(2));
                         type = CellType.TT_HeaderPrefix;
-                        align = CellAlign.Left;
+                        align = CellAlign.None;
                     }
                     else if (this.textileLeftRegExp.test(trimmed)) {
                         // <_を削除
@@ -350,11 +351,11 @@ export class TableHelper {
                     // Common  ----------------
                     if (this.commonMinusRegExp.test(trimmed)) {
                         type = CellType.CM_MinusSeparator;
-                        align = CellAlign.Left;
+                        align = CellAlign.None;
                     }
                     else if (this.commonEqualRegExp.test(trimmed)) {
                         type = CellType.CM_EquallSeparator;
-                        align = CellAlign.Left;
+                        align = CellAlign.None;
                     }
                     break;
 
