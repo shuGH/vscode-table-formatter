@@ -92,7 +92,7 @@ Sample:
     hg ||pull > update|commit / push|clone
 
     // =>
-    | -   |     | update               |    commit     | checkout |
+    |  -  |     |        update        |    commit     | checkout |
     | --- | --- | :------------------- | :-----------: | -------: |
     | git |     | pull / fetch > merge | commit / push |    clone |
     | hg  |     | pull > update        | commit / push |    clone |
@@ -107,7 +107,7 @@ Sample:
     Nanashi Gonbei|=.6
 
     // =>
-    |_. name           |_. age |
+    |_.      name      |_. age |
     |   John Doe       |>.  35 |
     |   Jane Doe       |<. 19  |
     |   Nanashi Gonbei |=.  6  |
@@ -148,13 +148,63 @@ Sample:
 
     // =>
     =====  =====  ========  =======
-    Input  .      Output
+    Input    .     Output
     -----  -----  --------  -------
-    A      B      "A or B"  A_and_B
+      A      B    "A or B"  A_and_B
     =====  =====  ========  =======
     False  False  False     False
     True   False  True      False
     =====  =====  ========  =======
+    ```
+
+## Configration
+
+Some of configrations and examples of it.
+
+* `tableformatter.common.centerAlignedHeader`
+
+    ```
+    // true
+    | Elem |   Win    | Lose  |
+    | ---- | :------- | ----: |
+    | Rock | Scissors | Paper |
+
+    // false
+    | Elem | Win      |  Lose |
+    | ---- | :------- | ----: |
+    | Rock | Scissors | Paper |
+    ```
+
+* `tableformatter.markdown.oneSpacePadding`
+
+    ```
+    // true
+    |   Elem   |  Win  | Lose |
+    | -------- | :---- | ---: |
+    | Scissors | Paper | Rock |
+
+    // false
+    |   Elem   |  Win  | Lose |
+    |----------|:------|-----:|
+    | Scissors | Paper | Rock |
+    ```
+
+* `tableformatter.markdown.tableEdgesType`
+
+    * 'Normal': Formatted table has delimiters on both sides.
+    * 'Borderless': Formatted table has no delimiters on both sides.
+    * 'Auto': If original table has no pipe delimiter at all line heads, format as borderless.
+
+    ```
+    // Normal
+    | Elem  | Win  |   Lose   |
+    | ----- | :--- | :------- |
+    | Paper | Rock | Scissors |
+
+    // Borderless
+    Elem  | Win  |   Lose
+    ----- | :--- | :-------
+    Paper | Rock | Scissors
     ```
 
 ## Installation
@@ -171,16 +221,14 @@ Search extension in marketplace and Install.
     * [x] Simple table
 * [ ] CSV support
     * [ ] Formatting
-        * Perhaps it will be specific command
-    * [ ] Escaping double quotation
+* [x] Configuration
+    * [ ] Switching Enable Text algin
+    * [ ] Escaped pipe string
+    * [ ] Escaped break string
 * [ ] Simple table editing
 	* [ ] Insert blank col and blank row
 	* [ ] Insert escaped pipe and break
 	* [ ] Convert to plain text table from CSV
-* [ ] Configuration
-    * [ ] Switching Enable Text algin
-    * [ ] Escaped pipe string
-    * [ ] Escaped break string
 * [ ] Fast and simple shortcut format in table syntax
     * e.g.) Press Tab key in table syntax, and format current table
     * Probably needs updating of VSCood features about key bindings "when" property.
