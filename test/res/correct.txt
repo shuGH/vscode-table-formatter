@@ -32,14 +32,14 @@ start
 
 // simple
 
-=====  =====  ========  =======
+=====  =====  ========  =======  ========  =======  ====
 Input    .     Output
------  -----  --------  -------
-  A      B    "A or B"  A_and_B
-=====  =====  ========  =======
-False  False  False     False
-True   False  True      False
-=====  =====  ========  =======
+-----  -----  --------  -------  --------  -------  ----
+  A      B    "A or B"  A_and_B  numeric1  not_num  num2
+=====  =====  ========  =======  ========  =======  ====
+False  False  False     False           2  x
+True   False  True      False        9.99  9.99        1
+=====  =====  ========  =======  ========  =======  ====
 
 // complex
 

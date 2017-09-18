@@ -18,7 +18,8 @@ export function activate(context: vscode.ExtensionContext) {
         common: {
             explicitFullwidthChars: [],
             trimTrailingWhitespace: true,
-            centerAlignedHeader: true
+            centerAlignedHeader: true,
+            rightAlignNumericColumns: false
         }
     }
 

@@ -15,7 +15,8 @@ export interface Setting {
     common: {
         explicitFullwidthChars: RegExp[],
         trimTrailingWhitespace: boolean,
-        centerAlignedHeader: boolean
+        centerAlignedHeader: boolean,
+        rightAlignNumericColumns: boolean
     }
 };
 
@@ -383,9 +384,51 @@ export class TableHelper {
             // 一行でも先頭に空白を追加していなかったら、行頭デリミタがあったと判定
             if (!obj.isAddedBlankHead) info.hasDelimiterAtLineHead = true;
         }
+        if(this.settings.common.rightAlignNumericColumns)
+        {
+            this.AdjustNumericColumns(grid, info.hasDelimiterAtLineHead);
+        }
         return new TableInfo(this.settings, range, grid, info);
     }
 
+    public AdjustNumericColumns(grid: Array<Array<CellInfo>>, hasDelimiterAtLineHead: boolean)
+    {
+        var isNumericColumnVector: Array<boolean> = [];
+        var startedContentCells = false;
+        var breakIteration = false;
+
+        //detect numeric columns
+        for (var i = grid.length - 1; i >= 0; i--) {
+            if(breakIteration) break;
+            var line = grid[i];
+            for(var j = 0, rowLen = line.length; j < rowLen; j++) {
+                var cell = line[j];
+                //add initial values into isNumericColumnVector
+                if(!(j in isNumericColumnVector)) {
+                    isNumericColumnVector[j] = cell.type == CellType.CM_Content || cell.type == CellType.CM_Blank;
+                }
+                if(startedContentCells && cell.type != CellType.CM_Content && cell.type != CellType.CM_Blank) {
+                    breakIteration = true;
+                    break;
+                }
+                if(cell.type == CellType.CM_Content && isNumericColumnVector[j] && isNaN(Number(cell.string))) {
+                    if(!startedContentCells) startedContentCells = true;
+                    if(cell.string.trim().length == 0) continue;
+                    isNumericColumnVector[j] = false;
+                    if(isNumericColumnVector.every(function (entry) { return entry == false; })) return;
+                }
+            }
+        }
+
+        //apply right align to all numeric columns
+        for (var i = 0, len = grid.length; i < len; i++) {
+            var line = grid[i];
+            for(var j = 0, rowLen = line.length; j < rowLen; j++) {
+                var cell = line[j];
+                if(isNumericColumnVector[j] == true) { cell.setAlign(CellAlign.Right); }
+            }
+        }
+    }
     // フォーマット済み範囲を走査しフォーマット対象の範囲を決める
     public getTargetRange(line: number, checkedIndex: number, ignoreRangeLines: Array<number>, maxLineCount: number): { min: number, count: number, checkedIndex: number } {
         // 判定に引っかからなかった場合のために初期値として最終区画の範囲を設定しておく
