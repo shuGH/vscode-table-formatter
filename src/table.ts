@@ -23,6 +23,7 @@ export enum CellType {
 
 // Cell align
 export enum CellAlign {
+    None,       // 未指定
     Left,
     Center,
     Right
@@ -87,8 +88,10 @@ export class CellInfo {
     private _align: CellAlign;
     // 左パディング（Textile用）
     private _padding: number;
+    // 数値か
+    private _isNumeric: boolean;
 
-    constructor(settings: Setting, trimmed: string, delimiter: DelimiterType = DelimiterType.Pipe, type: CellType = CellType.CM_Blank, align: CellAlign = CellAlign.Left, padding: number = 0) {
+    constructor(settings: Setting, trimmed: string, delimiter: DelimiterType = DelimiterType.Pipe, type: CellType = CellType.CM_Blank, align: CellAlign = CellAlign.None, padding: number = 0) {
         this._settings = settings;
 
         this._string = trimmed;
@@ -99,6 +102,8 @@ export class CellInfo {
         this._type = type;
         this._align = align;
         this._padding = padding;
+
+        this._isNumeric = !isNaN(Number(trimmed));
     }
 
     get string(): string {
@@ -127,6 +132,10 @@ export class CellInfo {
 
     get padding(): number {
         return this._padding;
+    }
+
+    get isNumeric(): boolean {
+        return this._isNumeric;
     }
 
     isValid(): boolean {

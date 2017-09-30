@@ -14,16 +14,14 @@ Supports multiple markup languages, and you do not need to specify a markup lang
 Features:
 
 * Formatting table syntax
-    * Align cell width with pipe
-    * Align text position in cell
-    * Add missing cells automatically
-    * Add missing separator syntax automatically in cell
+    * Align cell width with pipe.
+    * Align text position in cell.
+    * Add missing cells automatically.
+    * Add missing separator syntax automatically in cell.
 * Automatic discrimination of table syntax
-    * Discriminate markup language automatically
-    * Determine range of table syntax automatically
-* It is possible to select the format target
-    * Only table contain current cursor position
-    * All tables in opend text
+    * Discriminate markup language automatically.
+    * Determine range of table syntax automatically.
+
 * CJK support
 
 Supported markup language:
@@ -47,7 +45,7 @@ Not supported:
 
 Enter command in the command palette (`Ctrl-Shift-P` or `Cmd-Shift-P`) with cursor position in table syntax.
 The current table will be formatted.
-Or, you can format all the table syntax in opend text.
+Or, you can format all the table syntax in a current document.
 At that time, markup language is automatically determined.
 
 Command title:
@@ -55,9 +53,11 @@ Command title:
 * `Table: Format Current`
 	* format one table syntax contain current cursor position only
 	* command: `extension.table.formatCurrent`
+    * Keybinding: `ctrl+alt+t c`, `cmd+alt+t c`
 * `Table: Format All`
-	* format all table syntaxes in opend text
-	* command: `extension.table.formatAll`
+	* Format all table syntaxes in a current document.
+	* Command: `extension.table.formatAll`
+    * Keybinding: `ctrl+alt+t a`, `cmd+alt+t a`
 
 <!---
 * `Table: Format CSV`
@@ -160,6 +160,39 @@ Sample:
 ## Configration
 
 Some of configrations and examples of it.
+
+* `tableformatter.common.rightAlignedNumeric`
+
+    ```
+    // true
+    |   Elem   | Finger |
+    | -------- | ------ |
+    | Rock     |      0 |
+    | Scissors |      2 |
+    | Paper    |      5 |
+
+    // false
+    |   Elem   | Finger |
+    | -------- | ------ |
+    | Rock     | 0      |
+    | Scissors | 2      |
+    | Paper    | 5      |
+    ```
+
+* `tableformatter.common.explicitFullwidthChars`
+
+    Depending on a using font, length of full-width character is different.
+    All characters in this list calucurate length as full-width.
+
+    ```
+    // []
+    | Rock | →     | Scissors |
+    | ↖    | Paper | ↙        |
+
+    // ["↑","↓","","→","↗","↘","↖","↙"]
+    | Rock | →    | Scissors |
+    | ↖   | Paper | ↙       |
+    ```
 
 * `tableformatter.common.centerAlignedHeader`
 

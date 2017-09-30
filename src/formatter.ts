@@ -123,36 +123,55 @@ export class TableFormatter {
         return delimiter;
     }
 
-    //
+    // 揃え向きを返す
     private getAlign(cellIndex: number, cellInfo: CellInfo, rowIndex: number, prop: TableProperty, formatType: TableFormatType): number {
-        // コンフィグ：強制的に中心揃えにしない場合はそのまま返す
-        if (!this.settings.common.centerAlignedHeader) return cellInfo.align
+        // コンフィグ：強制揃えしない場合はそのまま返す
+        if (!this.settings.common.centerAlignedHeader && !this.settings.common.rightAlignedNumeric) return cellInfo.align
 
         let align = cellInfo.align;
-        switch (cellInfo.type) {
-            case CellType.TT_HeaderPrefix:
-                // コンフィグ：強制的に中心揃えにする
-                align = CellAlign.Center;
-                break;
 
-            case CellType.CM_Blank:
-            case CellType.CM_Content:
-                // コンフィグ：強制的に中心揃えにする
-                if (formatType == TableFormatType.Normal) {
-                    if (prop.markdownTableHeaderIndexes.has(rowIndex)) {
-                        align = CellAlign.Center;
+        // コンフィグ：ヘッダーを中心揃えにする
+        if (this.settings.common.centerAlignedHeader) {
+            switch (cellInfo.type) {
+                case CellType.TT_HeaderPrefix:
+                    align = CellAlign.Center;
+                    break;
+
+                case CellType.CM_Content:
+                    if (formatType == TableFormatType.Normal) {
+                        if (prop.markdownTableHeaderIndexes.has(rowIndex) || prop.gridTableHeaderIndexes.has(rowIndex)) {
+                            align = CellAlign.Center;
+                        }
                     }
-                    else if (prop.gridTableHeaderIndexes.has(rowIndex)) {
-                        align = CellAlign.Center;
+                    else if (formatType == TableFormatType.Simple) {
+                        if (prop.simpleTableHeaderIndexes.has(rowIndex)) {
+                            align = CellAlign.Center;
+                        }
                     }
-                }
-                else if (formatType == TableFormatType.Simple) {
-                    if (prop.simpleTableHeaderIndexes.has(rowIndex)) {
-                        align = CellAlign.Center;
-                    }
-                }
-                break;
+                    break;
+            }
         }
+
+        // コンフィグ：数字セルを中心揃えにする（揃えが設定されておらず、ヘッダーでない場合のみ有効）
+        if (this.settings.common.rightAlignedNumeric && cellInfo.align == CellAlign.None) {
+            switch (cellInfo.type) {
+                case CellType.CM_Content:
+                    if (formatType == TableFormatType.Normal) {
+                        if (cellInfo.isNumeric &&
+                            !prop.markdownTableHeaderIndexes.has(rowIndex) && !prop.gridTableHeaderIndexes.has(rowIndex)) {
+                            align = CellAlign.Right;
+                        }
+                    }
+                    else if (formatType == TableFormatType.Simple) {
+                        if (cellInfo.isNumeric &&
+                            !prop.simpleTableHeaderIndexes.has(rowIndex)) {
+                            align = CellAlign.Right;
+                        }
+                    }
+                    break;
+            }
+        }
+
         return align;
     }
 
@@ -229,7 +248,7 @@ export class TableFormatter {
                 case CellType.MD_LeftSeparator:
                     isPutPaddingOneSpace = this.getIsPutPaddingOneSpace(i, isPutEdges, isPutOneSpace);
                     formatted += this.getPaddingText(i, formattingSize, 0, delimiter, isPutPaddingOneSpace);
-                    formatted += this.getAlignedText(":---", formattingSize, "-", CellAlign.Left);
+                    formatted += this.getAlignedText(":---", formattingSize, "-", CellAlign.None);
                     formatted += this.getDelimiterText(i, cellInfoList.length, delimiter, isPutOneSpace);
                     break;
 
@@ -324,6 +343,8 @@ export class TableFormatter {
     private getAlignedText(text: string, size: number, pad: string, align: CellAlign): string {
         var opt = {};
         switch (align) {
+            case CellAlign.None:
+                // Leftとして処理
             case CellAlign.Left:
                 opt = { rpad: pad };
                 break;

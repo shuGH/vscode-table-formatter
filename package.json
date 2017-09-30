@@ -82,6 +82,11 @@
                     "default": true,
                     "description": "Force header cell to be center aligned or not."
                 },
+                "tableformatter.common.rightAlignedNumeric": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Force numeric cell to be center aligned or not if it is not aligned."
+                },
                 "tableformatter.markdown.oneSpacePadding": {
                     "type": "boolean",
                     "default": true,

@@ -35,7 +35,8 @@ suite("Extension Tests", () => {
             explicitFullwidthChars: [],
             trimTrailingWhitespace: true,
             centerAlignedHeader: true,
-            rightAlignNumericColumns: true
+            rightAlignNumericColumns: true,
+            rightAlignedNumeric: true
         }
     }
 
