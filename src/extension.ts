@@ -35,7 +35,7 @@ export function activate(context: vscode.ExtensionContext) {
         settings.common.centerAlignedHeader = config.get('common.centerAlignedHeader', false);
         settings.common.explicitFullwidthChars = []
         let chars = config.get('common.explicitFullwidthChars', []).filter(function (elem, i, self) {
-            return ((self.indexOf(elem) === i ) && (elem.length == 1));
+            return (self.indexOf(elem) === i );
         });
         chars.forEach((char, i) => {
             settings.common.explicitFullwidthChars.push(new RegExp(char, 'g'));
